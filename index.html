@@ -2,25 +2,45 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Quiniela Mundial</title>
+    <title>Quiniela Mundial - Posiciones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="container mt-5">
-    <h1 class="text-center">Quiniela Mundial - Tabla de Posiciones</h1>
-    
-    <table class="table table-hover mt-4">
-        <thead class="table-dark">
-            <tr>
-                <th>Participante</th>
-                <th>Puntos</th>
-            </tr>
-        </thead>
-        <tbody id="tabla-participantes">
-            </tbody>
-    </table>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="index.html">Posiciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="partidos.html">Partidos y Resultados</a></li>
+                    <li class="nav-item"><a class="btn btn-success ms-3" href="nuevo-participante.html">+ Nuevo Participante</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Tabla de Posiciones</h2>
+        
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover m-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Participante</th>
+                            <th>Puntos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-participantes">
+                        <tr><td colspan="3" class="text-center">Cargando posiciones...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ¡IMPORTANTE! Cambia esta URL por la URL pública que te dé Render para tu backend
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api/participants';
 
         async function cargarParticipantes() {
@@ -29,24 +49,28 @@
                 const participants = await response.json();
                 
                 const tbody = document.getElementById('tabla-participantes');
-                tbody.innerHTML = ''; // Limpiar tabla
+                tbody.innerHTML = '';
 
-                participants.forEach(p => {
+                if (participants.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center">Aún no hay participantes.</td></tr>';
+                    return;
+                }
+
+                participants.forEach((p, index) => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
+                        <td>${index + 1}</td>
                         <td>${p.name}</td>
                         <td><strong>${p.totalPoints}</strong></td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                console.error("Error al cargar la quiniela:", error);
+                console.error("Error al cargar:", error);
                 document.getElementById('tabla-participantes').innerHTML = 
-                    '<tr><td colspan="2" class="text-center text-danger">Error al cargar los datos</td></tr>';
+                    '<tr><td colspan="3" class="text-center text-danger">Error al cargar los datos</td></tr>';
             }
         }
-
-        // Cargar los datos al abrir la página
         cargarParticipantes();
     </script>
 </body>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiniela Mundial - Partidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="partidos.html">Partidos y Resultados</a></li>
+                    <li class="nav-item"><a class="btn btn-success ms-3" href="nuevo-participante.html">+ Nuevo Participante</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Resultados de los Partidos</h2>
+        <div id="lista-partidos" class="row">
+            <div class="col-12 text-center">Cargando partidos...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+
+        async function cargarPartidos() {
+            try {
+                const response = await fetch(`${API_URL}/matches`);
+                const matches = await response.json();
+                
+                const contenedor = document.getElementById('lista-partidos');
+                contenedor.innerHTML = '';
+
+                matches.forEach(m => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6 mb-4';
+                    
+                    // Si ya hay resultado, lo mostramos; si no, dejamos el input vacío
+                    const valA = m.realGoalsA !== null ? m.realGoalsA : '';
+                    const valB = m.realGoalsB !== null ? m.realGoalsB : '';
+
+                    col.innerHTML = `
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">${m.teamA} vs ${m.teamB}</h5>
+                                <div class="d-flex justify-content-center align-items-center mt-3">
+                                    <input type="number" id="golesA-${m.id}" class="form-control text-center w-25" value="${valA}" min="0">
+                                    <span class="mx-3">-</span>
+                                    <input type="number" id="golesB-${m.id}" class="form-control text-center w-25" value="${valB}" min="0">
+                                </div>
+                                <button class="btn btn-primary mt-3 w-100" onclick="guardarResultado(${m.id})">Guardar Resultado (Calcula Puntos)</button>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.appendChild(col);
+                });
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        async function guardarResultado(matchId) {
+            const golesA = document.getElementById(`golesA-${matchId}`).value;
+            const golesB = document.getElementById(`golesB-${matchId}`).value;
+
+            if (golesA === '' || golesB === '') {
+                alert('Debes ingresar los goles de ambos equipos');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/matches/${matchId}/result`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goalsA: parseInt(golesA), goalsB: parseInt(golesB) })
+                });
+
+                if (response.ok) {
+                    alert('¡Resultado guardado y puntos calculados!');
+                    cargarPartidos(); // Recargar para ver los cambios
+                } else {
+                    alert('Error al guardar el resultado.');
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        cargarPartidos();
+    </script>
+</body>
+</html>
