@@ -7,25 +7,13 @@
 </head>
 <body class="bg-light">
 
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="menuNavegacion">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
-                    <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
-                    
-                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
-                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
-                    
-                    <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
-                </ul>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="index.html">Posiciones</a>
+                <a class="nav-link active fw-bold text-info" href="grupos.html">📊 Grupos</a>
             </div>
         </div>
     </nav>
