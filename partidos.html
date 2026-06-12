@@ -13,7 +13,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
                     <li class="nav-item"><a class="nav-link active" href="partidos.html">Partidos y Resultados</a></li>
-                    <li class="nav-item"><a class="btn btn-success ms-3" href="nuevo-participante.html">+ Nuevo Participante</a></li>
+                    <li class="nav-item"><a class="btn btn-success ms-3" id="btn-nuevo-part" href="nuevo-participante.html" style="display: none;">+ Nuevo Participante</a></li>
                 </ul>
             </div>
         </div>
@@ -28,12 +28,15 @@
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+        // Mostrar el botón de nuevo participante en el navbar solo si es admin
+        if (isAdmin) document.getElementById('btn-nuevo-part').style.display = 'block';
 
         async function cargarPartidos() {
             try {
                 const response = await fetch(`${API_URL}/matches`);
                 const matches = await response.json();
-                
                 const contenedor = document.getElementById('lista-partidos');
                 contenedor.innerHTML = '';
 
@@ -41,20 +44,22 @@
                     const col = document.createElement('div');
                     col.className = 'col-md-6 mb-4';
                     
-                    // Si ya hay resultado, lo mostramos; si no, dejamos el input vacío
                     const valA = m.realGoalsA !== null ? m.realGoalsA : '';
                     const valB = m.realGoalsB !== null ? m.realGoalsB : '';
+                    
+                    // Si no es admin, desactivamos los inputs
+                    const isDisabled = isAdmin ? '' : 'disabled';
 
                     col.innerHTML = `
                         <div class="card shadow-sm">
                             <div class="card-body text-center">
                                 <h5 class="card-title">${m.teamA} vs ${m.teamB}</h5>
                                 <div class="d-flex justify-content-center align-items-center mt-3">
-                                    <input type="number" id="golesA-${m.id}" class="form-control text-center w-25" value="${valA}" min="0">
+                                    <input type="number" id="golesA-${m.id}" class="form-control text-center w-25" value="${valA}" min="0" ${isDisabled}>
                                     <span class="mx-3">-</span>
-                                    <input type="number" id="golesB-${m.id}" class="form-control text-center w-25" value="${valB}" min="0">
+                                    <input type="number" id="golesB-${m.id}" class="form-control text-center w-25" value="${valB}" min="0" ${isDisabled}>
                                 </div>
-                                <button class="btn btn-primary mt-3 w-100" onclick="guardarResultado(${m.id})">Guardar Resultado (Calcula Puntos)</button>
+                                ${isAdmin ? `<button class="btn btn-primary mt-3 w-100" onclick="guardarResultado(${m.id})">Guardar Resultado</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -82,10 +87,8 @@
                 });
 
                 if (response.ok) {
-                    alert('¡Resultado guardado y puntos calculados!');
-                    cargarPartidos(); // Recargar para ver los cambios
-                } else {
-                    alert('Error al guardar el resultado.');
+                    alert('¡Resultado guardado!');
+                    cargarPartidos();
                 }
             } catch (error) {
                 console.error("Error:", error);
