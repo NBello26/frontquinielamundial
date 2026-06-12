@@ -50,10 +50,12 @@
 
                     const contenedor = document.getElementById(contenedorId);
                     const col = document.createElement('div');
-                    col.className = 'col-12 mb-2'; // Ocupa todo el ancho
+                    col.className = 'col-12 mb-2';
                     
-                    // Validación mejorada para asegurar que muestre resultados incluyendo el 0
-                    const jugado = m.realGoalsA !== null && m.realGoalsA !== undefined && m.realGoalsA !== '';
+                    // Extraer valores reales, respetando el "0"
+                    const valA = m.realGoalsA ?? '';
+                    const valB = m.realGoalsB ?? '';
+                    const jugado = valA !== '' && valB !== '';
 
                     col.innerHTML = `
                         <div class="card shadow-sm border-0">
@@ -63,10 +65,10 @@
                                     
                                     <div class="col-4 text-center">
                                         ${jugado ? 
-                                            `<span class="badge bg-success fs-5 px-3 py-2 w-100">${m.realGoalsA} - ${m.realGoalsB}</span>
-                                             <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Finalizado</small>` 
+                                            `<span class="badge bg-success fs-5 px-3 py-2 w-100 shadow-sm">${valA} - ${valB}</span>
+                                             <small class="text-success mt-1 d-block fw-bold" style="font-size: 0.75rem;">Finalizado</small>` 
                                             : 
-                                            `<span class="badge bg-secondary fs-6 px-3 py-2 w-100">VS</span>
+                                            `<span class="badge bg-secondary fs-6 px-3 py-2 w-100 text-white-50">VS</span>
                                              <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Por jugar</small>`
                                         }
                                     </div>
