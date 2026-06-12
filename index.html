@@ -4,18 +4,24 @@
     <meta charset="UTF-8">
     <title>Quiniela Mundial - Posiciones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
+<body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
-            <div class="collapse navbar-collapse">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
-    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
-                    <li class="nav-item admin-only" style="display: none;"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
-                    <li class="nav-item admin-only" style="display: none;"><a class="btn btn-success ms-3 btn-sm" href="nuevo-participante.html">+ Nuevo Participante</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
+                    
+                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
                     
                     <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
@@ -23,42 +29,63 @@
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <h2 class="text-center mb-4">Tabla de Posiciones</h2>
-        <div class="card shadow-sm">
+    <div class="container mt-4 mb-5" style="max-width: 800px;">
+        <h2 class="text-center mb-4">Tabla de Posiciones Oficial</h2>
+        
+        <div class="card shadow-sm border-0 bg-white">
             <div class="card-body p-0">
-                <table class="table table-striped table-hover m-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>#</th>
-                            <th>Participante</th>
-                            <th>Puntos</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-participantes">
-                        <tr><td colspan="3" class="text-center">Cargando posiciones...</td></tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle m-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 70px;" class="text-center">#</th>
+                                <th>Participante</th>
+                                <th style="width: 120px;" class="text-center">Puntos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-participantes">
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Cargando posiciones de la quiniela...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api/participants';
+        // Corregido: Se unificó la URL base de la API para mantener consistencia con los otros archivos
+        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
         const ADMIN_PASSWORD = 'familia2026';
 
         function verificarAdmin() {
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'block' : 'none');
-            document.getElementById('btn-auth').innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
-            document.getElementById('btn-auth').className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
+            
+            // Corregido: Uso de la clase d-none
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('d-none', !isAdmin);
+            });
+            
+            const btnAuth = document.getElementById('btn-auth');
+            if(btnAuth) {
+                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
+                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
+            }
         }
 
         function toggleAuth() {
             if (localStorage.getItem('isAdmin') === 'true') {
                 localStorage.removeItem('isAdmin');
                 alert('Sesión cerrada');
-                verificarAdmin();
+                if(window.location.href.includes('admin') || window.location.href.includes('editar')) {
+                    window.location.href = 'index.html';
+                } else {
+                    verificarAdmin();
+                }
             } else {
                 const pass = prompt('Introduce la contraseña de administrador:');
                 if (pass === ADMIN_PASSWORD) {
@@ -71,24 +98,52 @@
             }
         }
 
+        verificarAdmin();
+
         async function cargarParticipantes() {
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch(`${API_URL}/participants`);
                 const participants = await response.json();
                 const tbody = document.getElementById('tabla-participantes');
+                
+                if (!tbody) return;
                 tbody.innerHTML = '';
+
+                // Mejora: Asegura el ordenamiento de puntajes de mayor a menor de forma explícita en el cliente
+                participants.sort((a, b) => b.totalPoints - a.totalPoints);
 
                 participants.forEach((p, index) => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${index + 1}</td><td>${p.name}</td><td><strong class="fs-5">${p.totalPoints}</strong></td>`;
+                    
+                    // Mejora visual: Añade medallas animadas o destacadas para el podio de los 3 primeros
+                    let lugarHTML = index + 1;
+                    if (index === 0) lugarHTML = '🥇';
+                    else if (index === 1) lugarHTML = '🥈';
+                    else if (index === 2) lugarHTML = '🥉';
+
+                    // Si el usuario actual está en el podio, resalta un poco su fila
+                    const filaClase = index < 3 ? 'table-light fw-semibold' : '';
+                    if(filaClase) tr.className = filaClase;
+
+                    tr.innerHTML = `
+                        <td class="text-center fw-bold fs-5">${lugarHTML}</td>
+                        <td class="fs-6 text-capitalize">${p.name}</td>
+                        <td class="text-center"><span class="badge bg-primary fs-5 px-3 py-1 shadow-sm w-100" style="max-width: 80px;">${p.totalPoints}</span></td>
+                    `;
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error cargando tabla de posiciones:", error);
+                document.getElementById('tabla-participantes').innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-danger py-4">
+                            ❌ Error al conectar con el servidor. No se pudieron cargar las posiciones.
+                        </td>
+                    </tr>
+                `;
             }
         }
 
-        verificarAdmin();
         cargarParticipantes();
     </script>
 </body>

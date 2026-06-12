@@ -10,12 +10,20 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
-            <div class="collapse navbar-collapse">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
-    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
+                    
+                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    
+                    <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
             </div>
         </div>
@@ -39,6 +47,46 @@
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+        const ADMIN_PASSWORD = 'familia2026';
+
+        function verificarAdmin() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            // Corregido: Alternar la clase d-none para ocultar/mostrar sin romper Flexbox
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('d-none', !isAdmin);
+            });
+            
+            // Cambiar el estilo del botón de iniciar/cerrar sesión
+            const btnAuth = document.getElementById('btn-auth');
+            if(btnAuth) {
+                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
+                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
+            }
+        }
+
+        function toggleAuth() {
+            if (localStorage.getItem('isAdmin') === 'true') {
+                localStorage.removeItem('isAdmin');
+                alert('Sesión cerrada');
+                if(window.location.href.includes('admin') || window.location.href.includes('editar')) {
+                    window.location.href = 'index.html';
+                } else {
+                    verificarAdmin();
+                }
+            } else {
+                const pass = prompt('Introduce la contraseña de administrador:');
+                if (pass === ADMIN_PASSWORD) {
+                    localStorage.setItem('isAdmin', 'true');
+                    alert('¡Sesión iniciada como administrador!');
+                    verificarAdmin();
+                } else if (pass !== null) {
+                    alert('Contraseña incorrecta');
+                }
+            }
+        }
+
+        verificarAdmin();
 
         async function cargarPartidos() {
             try {
@@ -47,14 +95,23 @@
 
                 matches.forEach((m, index) => {
                     let contenedorId = 'lista-fecha1';
-                    if (index >= 24 && index < 48) contenedorId = 'lista-fecha2';
-                    if (index >= 48) contenedorId = 'lista-fecha3';
+                    
+                    // Mejora: Se intenta usar una propiedad de la API (round o fecha).
+                    // Si no existe, usamos la validación por índices (index) como respaldo.
+                    if (m.round === 2 || m.fecha === 2 || (index >= 24 && index < 48)) {
+                        contenedorId = 'lista-fecha2';
+                    } else if (m.round === 3 || m.fecha === 3 || index >= 48) {
+                        contenedorId = 'lista-fecha3';
+                    }
 
                     const contenedor = document.getElementById(contenedorId);
+                    
+                    // Si por alguna razón el contenedor no existe, evitamos que el código se rompa
+                    if (!contenedor) return; 
+
                     const col = document.createElement('div');
                     col.className = 'col-12 mb-2';
                     
-                    // Extraer valores reales, respetando el "0"
                     const valA = m.realGoalsA ?? '';
                     const valB = m.realGoalsB ?? '';
                     const jugado = valA !== '' && valB !== '';
@@ -83,9 +140,10 @@
                     contenedor.appendChild(col);
                 });
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error cargando partidos:", error);
             }
         }
+        
         cargarPartidos();
     </script>
 </body>

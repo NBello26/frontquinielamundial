@@ -14,77 +14,142 @@
         }
     </script>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="index.html">🛡️ Panel de Administrador</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link text-white" href="index.html">Volver al Inicio</a></li>
+            <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="menuNavegacion">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
+                    
+                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    
+                    <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4 mb-5" style="max-width: 800px;">
-        <h2 class="text-center mb-4">Ingresar o Editar Resultados</h2>
+        <h2 class="text-center mb-4">Ingresar o Editar Resultados Reales</h2>
 
-        <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#admin-fecha1">Fecha 1</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#admin-fecha2">Fecha 2</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#admin-fecha3">Fecha 3</button></li>
+        <ul class="nav nav-pills justify-content-center mb-4 bg-white p-2 rounded shadow-sm" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#admin-fecha1">Fecha 1</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#admin-fecha2">Fecha 2</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#admin-fecha3">Fecha 3</button></li>
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="admin-fecha1"><div class="row" id="admin-lista-fecha1"></div></div>
-            <div class="tab-pane fade" id="admin-fecha2"><div class="row" id="admin-lista-fecha2"></div></div>
-            <div class="tab-pane fade" id="admin-fecha3"><div class="row" id="admin-lista-fecha3"></div></div>
+            <div class="tab-pane fade show active" id="admin-fecha1">
+                <div class="row" id="admin-lista-fecha1">
+                    <div class="text-center text-muted my-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando Fecha 1...</div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="admin-fecha2">
+                <div class="row" id="admin-lista-fecha2">
+                    <div class="text-center text-muted my-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando Fecha 2...</div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="admin-fecha3">
+                <div class="row" id="admin-lista-fecha3">
+                    <div class="text-center text-muted my-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando Fecha 3...</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+        const ADMIN_PASSWORD = 'familia2026';
+
+        function verificarAdmin() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('d-none', !isAdmin);
+            });
+            
+            const btnAuth = document.getElementById('btn-auth');
+            if(btnAuth) {
+                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
+                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
+            }
+        }
+
+        function toggleAuth() {
+            if (localStorage.getItem('isAdmin') === 'true') {
+                localStorage.removeItem('isAdmin');
+                alert('Sesión cerrada');
+                window.location.href = 'index.html';
+            } else {
+                const pass = prompt('Introduce la contraseña de administrador:');
+                if (pass === ADMIN_PASSWORD) {
+                    localStorage.setItem('isAdmin', 'true');
+                    alert('¡Sesión iniciada como administrador!');
+                    verificarAdmin();
+                } else if (pass !== null) {
+                    alert('Contraseña incorrecta');
+                }
+            }
+        }
+
+        verificarAdmin();
 
         async function cargarPartidosAdmin() {
             try {
                 const response = await fetch(`${API_URL}/matches`);
                 const matches = await response.json();
 
-                matches.forEach((m, index) => {
+                // Limpiamos los contenedores de carga inicial antes de renderizar
+                document.getElementById('admin-lista-fecha1').innerHTML = '';
+                document.getElementById('admin-lista-fecha2').innerHTML = '';
+                document.getElementById('admin-lista-fecha3').innerHTML = '';
+
+                matches.forEach(m => {
+                    // Corregido: Clasificación consistente basada en el ID único del partido
                     let contenedorId = 'admin-lista-fecha1';
-                    if (index >= 24 && index < 48) contenedorId = 'admin-lista-fecha2';
-                    if (index >= 48) contenedorId = 'admin-lista-fecha3';
+                    if (m.id >= 25 && m.id <= 48) contenedorId = 'admin-lista-fecha2';
+                    if (m.id > 48) contenedorId = 'admin-lista-fecha3';
 
                     const contenedor = document.getElementById(contenedorId);
+                    if (!contenedor) return;
+
                     const col = document.createElement('div');
-                    col.className = 'col-12 mb-3';
+                    col.className = 'col-12 mb-2';
                     
-                    // Extraer los valores exactamente como vienen, respetando el cero
                     const valA = m.realGoalsA ?? '';
                     const valB = m.realGoalsB ?? '';
                     const jugado = valA !== '' && valB !== '';
                     
-                    const borde = jugado ? 'border border-success border-2' : 'border-0';
-                    const textoBoton = jugado ? 'Actualizar' : 'Guardar';
-                    const colorBoton = jugado ? 'btn-outline-success' : 'btn-primary';
+                    // Diseño visual dinámico: Si ya tiene resultado, se marca en verde sutil
+                    const cardClase = jugado ? 'border-success bg-white shadow-sm' : 'border-0 bg-white shadow-sm';
+                    const textoBoton = jugado ? '🔄 Actualizar' : '💾 Guardar';
+                    const colorBoton = jugado ? 'btn-success' : 'btn-primary';
 
                     col.innerHTML = `
-                        <div class="card shadow-sm ${borde}">
-                            <div class="card-body py-3">
+                        <div class="card ${cardClase}" id="card-match-${m.id}">
+                            <div class="card-body py-2 px-3">
                                 <div class="row align-items-center m-0">
-                                    <div class="col-4 text-end fw-bold fs-6 text-truncate" title="${m.teamA}">${m.teamA}</div>
+                                    <div class="col-4 text-end fw-bold fs-6 text-truncate p-0" title="${m.teamA}">${m.teamA}</div>
                                     
-                                    <div class="col-4 px-0">
+                                    <div class="col-4 px-1">
                                         <div class="d-flex justify-content-center align-items-center">
-                                            <input type="number" id="golesA-${m.id}" class="form-control text-center px-1 fw-bold" value="${valA}" min="0" style="max-width: 50px;">
+                                            <input type="number" id="golesA-${m.id}" class="form-control text-center fw-bold border-secondary shadow-sm" value="${valA}" min="0" style="width: 55px; height: 38px;">
                                             <span class="mx-2 fw-bold text-muted">-</span>
-                                            <input type="number" id="golesB-${m.id}" class="form-control text-center px-1 fw-bold" value="${valB}" min="0" style="max-width: 50px;">
-                                        </div>
-                                        <div class="text-center mt-2">
-                                            <button class="btn ${colorBoton} btn-sm px-3 fw-bold" onclick="guardarResultado(${m.id})">${textoBoton}</button>
+                                            <input type="number" id="golesB-${m.id}" class="form-control text-center fw-bold border-secondary shadow-sm" value="${valB}" min="0" style="width: 55px; height: 38px;">
                                         </div>
                                     </div>
                                     
-                                    <div class="col-4 text-start fw-bold fs-6 text-truncate" title="${m.teamB}">${m.teamB}</div>
+                                    <div class="col-4 text-start fw-bold fs-6 text-truncate p-0" title="${m.teamB}">${m.teamB}</div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <button class="btn ${colorBoton} btn-sm px-4 fw-bold shadow-sm" id="btn-save-${m.id}" onclick="guardarResultado(${m.id})">${textoBoton}</button>
                                 </div>
                             </div>
                         </div>
@@ -92,36 +157,57 @@
                     contenedor.appendChild(col);
                 });
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error al cargar partidos de administrador:", error);
             }
         }
 
         async function guardarResultado(matchId) {
             const golesA = document.getElementById(`golesA-${matchId}`).value;
             const golesB = document.getElementById(`golesB-${matchId}`).value;
+            const boton = document.getElementById(`btn-save-${matchId}`);
 
             if (golesA === '' || golesB === '') {
                 alert('Debes ingresar los goles de ambos equipos para guardar.');
                 return;
             }
 
+            if(boton) {
+                boton.innerHTML = '⏳...';
+                boton.disabled = true;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/matches/${matchId}/result`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ goalsA: parseInt(golesA), goalsB: parseInt(golesB) })
+                    body: JSON.stringify({ goalsA: parseInt(golesA, 10), goalsB: parseInt(golesB, 10) })
                 });
 
                 if (response.ok) {
-                    alert('¡Resultado guardado correctamente!');
-                    location.reload(); 
+                    // Cambio: En vez de recargar la página completa, modificamos visualmente la tarjeta para dar feedback inmediato
+                    const tarjeta = document.getElementById(`card-match-${matchId}`);
+                    if(tarjeta) {
+                        tarjeta.className = "card border-success bg-white shadow-sm";
+                    }
+                    if(boton) {
+                        boton.className = "btn btn-success btn-sm px-4 fw-bold shadow-sm";
+                        boton.innerHTML = "🔄 Actualizar";
+                    }
+                    alert('¡Resultado guardado correctamente y puntajes actualizados!');
+                } else {
+                    alert('Error en el servidor al intentar procesar el partido.');
+                    if(boton) boton.innerHTML = "💾 Guardar";
                 }
             } catch (error) {
-                console.error("Error al guardar:", error);
-                alert("Hubo un error al guardar. Intenta nuevamente.");
+                console.error("Error al guardar el resultado real:", error);
+                alert("Hubo un error de red. Intenta nuevamente.");
+                if(boton) boton.innerHTML = "💾 Guardar";
+            } finally {
+                if(boton) boton.disabled = false;
             }
         }
 
+        // Carga inicial al cargar el DOM
         cargarPartidosAdmin();
     </script>
 </body>

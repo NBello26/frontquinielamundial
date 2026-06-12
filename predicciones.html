@@ -10,11 +10,20 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
-            <div class="collapse navbar-collapse">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="predicciones.html">Predicciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
+                    
+                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    
+                    <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
             </div>
         </div>
@@ -36,7 +45,7 @@
             <p>Selecciona un nombre arriba para ver su quiniela separada por fechas.</p>
         </div>
 
-        <div id="contenedor-fechas" style="display: none;">
+        <div id="contenedor-fechas" class="d-none">
             <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
                 <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pred-fecha1">Fecha 1</button></li>
                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pred-fecha2">Fecha 2</button></li>
@@ -53,8 +62,53 @@
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+        const ADMIN_PASSWORD = 'familia2026';
 
-        function calcularPuntos(predA, predB, realA, realB) {
+        function verificarAdmin() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            // Corregido: Uso de d-none para no alterar las propiedades Flexbox del navbar
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('d-none', !isAdmin);
+            });
+            
+            const btnAuth = document.getElementById('btn-auth');
+            if(btnAuth) {
+                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
+                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
+            }
+        }
+
+        function toggleAuth() {
+            if (localStorage.getItem('isAdmin') === 'true') {
+                localStorage.removeItem('isAdmin');
+                alert('Sesión cerrada');
+                if(window.location.href.includes('admin') || window.location.href.includes('editar')) {
+                    window.location.href = 'index.html';
+                } else {
+                    verificarAdmin();
+                }
+            } else {
+                const pass = prompt('Introduce la contraseña de administrador:');
+                if (pass === ADMIN_PASSWORD) {
+                    localStorage.setItem('isAdmin', 'true');
+                    alert('¡Sesión iniciada como administrador!');
+                    verificarAdmin();
+                } else if (pass !== null) {
+                    alert('Contraseña incorrecta');
+                }
+            }
+        }
+
+        verificarAdmin();
+
+        // Corregido: Forzar conversión a enteros (parseInt) para evitar fallos de tipos String vs Number
+        function calcularPuntos(pA, pB, rA, rB) {
+            const predA = parseInt(pA, 10);
+            const predB = parseInt(pB, 10);
+            const realA = parseInt(rA, 10);
+            const realB = parseInt(rB, 10);
+
             if (predA === realA && predB === realB) return 5;
             
             const prediceEmpate = predA === predB;
@@ -85,7 +139,7 @@
                     select.appendChild(option);
                 });
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error cargando participantes:", error);
                 document.getElementById('select-participante').innerHTML = '<option value="">Error al cargar</option>';
             }
         }
@@ -96,20 +150,19 @@
             const contFechas = document.getElementById('contenedor-fechas');
             
             if (!participanteId) {
-                msgInicial.style.display = 'block';
-                contFechas.style.display = 'none';
+                msgInicial.classList.remove('d-none');
+                contFechas.classList.add('d-none');
                 return;
             }
 
-            msgInicial.style.display = 'none';
-            contFechas.style.display = 'block';
+            msgInicial.classList.add('d-none');
+            contFechas.classList.remove('d-none');
 
             document.getElementById('lista-pred-fecha1').innerHTML = '';
             document.getElementById('lista-pred-fecha2').innerHTML = '';
             document.getElementById('lista-pred-fecha3').innerHTML = '';
 
             try {
-                // Hacemos DOS llamadas: Traemos al participante y traemos TODOS los partidos
                 const [resPart, resMatches] = await Promise.all([
                     fetch(`${API_URL}/participants/${participanteId}`),
                     fetch(`${API_URL}/matches`)
@@ -118,15 +171,19 @@
                 const data = await resPart.json();
                 const matches = await resMatches.json();
                 
-                // Ahora recorremos los 72 partidos obligatoriamente
                 matches.forEach(match => {
                     let contenedorId = 'lista-pred-fecha1';
-                    if (match.id >= 25 && match.id <= 48) contenedorId = 'lista-pred-fecha2';
-                    if (match.id > 48) contenedorId = 'lista-pred-fecha3';
+                    
+                    // Mejora: Prioriza campos round/fecha de la API; usa ID numérico solo de respaldo
+                    if (match.round === 2 || match.fecha === 2 || (match.id >= 25 && match.id <= 48)) {
+                        contenedorId = 'lista-pred-fecha2';
+                    } else if (match.round === 3 || match.fecha === 3 || match.id > 48) {
+                        contenedorId = 'lista-pred-fecha3';
+                    }
                     
                     const contenedor = document.getElementById(contenedorId);
+                    if (!contenedor) return;
 
-                    // Buscamos si el familiar hizo predicción para este partido
                     const pred = data.predictions ? data.predictions.find(p => p.matchId === match.id) : null;
 
                     const realA = match.realGoalsA ?? '';
@@ -136,7 +193,6 @@
                     let puntosHTML = '';
                     let colorBorde = 'border-0';
                     
-                    // Configuramos cómo se ve si puso o no puso predicción
                     const predText = pred ? `${pred.goalsA} - ${pred.goalsB}` : 'Sin predicción';
                     const badgeClass = pred ? 'bg-primary' : 'bg-secondary text-white-50 fs-6';
 
@@ -153,7 +209,6 @@
                             colorBorde = 'border border-danger opacity-75';
                         }
                     } else if (jugado && !pred) {
-                        // Si el partido se jugó pero no había predicción
                         puntosHTML = `<span class="badge bg-danger mt-2">0 Puntos (No ingresada)</span>`;
                         colorBorde = 'border border-danger opacity-75';
                     }
@@ -186,7 +241,7 @@
                     contenedor.appendChild(col);
                 });
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error cargando predicciones:", error);
             }
         }
 
