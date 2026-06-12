@@ -54,7 +54,6 @@
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
 
-        // Lógica matemática para calcular puntos en pantalla
         function calcularPuntos(predA, predB, realA, realB) {
             if (predA === realA && predB === realB) return 5;
             
@@ -71,7 +70,6 @@
             return 0;
         }
 
-        // 1. Cargar la lista desplegable ordenada de Mayor a Menor puntaje
         async function cargarListaParticipantes() {
             try {
                 const response = await fetch(`${API_URL}/participants`);
@@ -80,11 +78,9 @@
                 const select = document.getElementById('select-participante');
                 select.innerHTML = '<option value="">Selecciona un participante...</option>';
 
-                // Ordenar por totalPoints (de mayor a menor)
                 participants.sort((a, b) => b.totalPoints - a.totalPoints).forEach((p, index) => {
                     const option = document.createElement('option');
                     option.value = p.id;
-                    // Agregamos la posición (1º, 2º...) para que sea más competitivo
                     option.textContent = `#${index + 1} - ${p.name} (${p.totalPoints} pts)`;
                     select.appendChild(option);
                 });
@@ -94,7 +90,6 @@
             }
         }
 
-        // 2. Cargar las predicciones y dividirlas por fecha
         async function cargarPredicciones() {
             const participanteId = document.getElementById('select-participante').value;
             const msgInicial = document.getElementById('mensaje-inicial');
@@ -109,44 +104,46 @@
             msgInicial.style.display = 'none';
             contFechas.style.display = 'block';
 
-            // Limpiar las 3 listas antes de llenarlas
             document.getElementById('lista-pred-fecha1').innerHTML = '';
             document.getElementById('lista-pred-fecha2').innerHTML = '';
             document.getElementById('lista-pred-fecha3').innerHTML = '';
 
             try {
-                const response = await fetch(`${API_URL}/participants/${participanteId}`);
-                const data = await response.json();
+                // Hacemos DOS llamadas: Traemos al participante y traemos TODOS los partidos
+                const [resPart, resMatches] = await Promise.all([
+                    fetch(`${API_URL}/participants/${participanteId}`),
+                    fetch(`${API_URL}/matches`)
+                ]);
                 
-                if (!data.predictions || data.predictions.length === 0) {
-                    document.getElementById('lista-pred-fecha1').innerHTML = '<div class="col-12 text-center text-danger mt-3">No hay predicciones.</div>';
-                    return;
-                }
-
-                data.predictions.forEach(pred => {
-                    const match = pred.match;
-                    
-                    // Decidir en qué pestaña va según el ID del partido
+                const data = await resPart.json();
+                const matches = await resMatches.json();
+                
+                // Ahora recorremos los 72 partidos obligatoriamente
+                matches.forEach(match => {
                     let contenedorId = 'lista-pred-fecha1';
                     if (match.id >= 25 && match.id <= 48) contenedorId = 'lista-pred-fecha2';
                     if (match.id > 48) contenedorId = 'lista-pred-fecha3';
                     
                     const contenedor = document.getElementById(contenedorId);
 
-                    // Análisis de resultados y puntos
+                    // Buscamos si el familiar hizo predicción para este partido
+                    const pred = data.predictions ? data.predictions.find(p => p.matchId === match.id) : null;
+
                     const realA = match.realGoalsA ?? '';
                     const realB = match.realGoalsB ?? '';
                     const jugado = realA !== '' && realB !== '';
                     
                     let puntosHTML = '';
                     let colorBorde = 'border-0';
+                    
+                    // Configuramos cómo se ve si puso o no puso predicción
+                    const predText = pred ? `${pred.goalsA} - ${pred.goalsB}` : 'Sin predicción';
+                    const badgeClass = pred ? 'bg-primary' : 'bg-secondary text-white-50 fs-6';
 
-                    if (jugado) {
+                    if (jugado && pred) {
                         const puntos = calcularPuntos(pred.goalsA, pred.goalsB, realA, realB);
-                        
-                        // Darle estilo a los puntos ganados (Verde para 5, Amarillo para 3, Gris/Rojo para 0)
                         if (puntos === 5) {
-                            puntosHTML = `<span class="badge bg-success mt-2 fs-6">+5 Puntos (Acierto Exacto)</span>`;
+                            puntosHTML = `<span class="badge bg-success mt-2 fs-6">+5 Puntos (Exacto)</span>`;
                             colorBorde = 'border border-success';
                         } else if (puntos === 3) {
                             puntosHTML = `<span class="badge bg-warning text-dark mt-2 fs-6">+3 Puntos (Tendencia)</span>`;
@@ -155,6 +152,10 @@
                             puntosHTML = `<span class="badge bg-danger mt-2">0 Puntos</span>`;
                             colorBorde = 'border border-danger opacity-75';
                         }
+                    } else if (jugado && !pred) {
+                        // Si el partido se jugó pero no había predicción
+                        puntosHTML = `<span class="badge bg-danger mt-2">0 Puntos (No ingresada)</span>`;
+                        colorBorde = 'border border-danger opacity-75';
                     }
 
                     const textoReal = jugado 
@@ -170,8 +171,8 @@
                                     <div class="col-4 text-end fw-bold fs-6 text-truncate" title="${match.teamA}">${match.teamA}</div>
                                     
                                     <div class="col-4 text-center px-0">
-                                        <span class="badge bg-primary fs-5 px-3 py-2 w-100 shadow-sm" title="Su predicción">
-                                            ${pred.goalsA} - ${pred.goalsB}
+                                        <span class="badge ${badgeClass} fs-5 px-3 py-2 w-100 shadow-sm">
+                                            ${predText}
                                         </span>
                                         <small class="d-block mt-1 mb-1" style="font-size: 0.75rem;">${textoReal}</small>
                                         ${puntosHTML}
