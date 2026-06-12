@@ -25,7 +25,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container mt-4 mb-5" style="max-width: 800px;">
         <h2 class="text-center mb-4">Ingresar Resultados Reales</h2>
 
         <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
@@ -56,22 +56,32 @@
 
                     const contenedor = document.getElementById(contenedorId);
                     const col = document.createElement('div');
-                    col.className = 'col-md-6 mb-3';
+                    col.className = 'col-12 mb-3';
                     
-                    const valA = m.realGoalsA !== null ? m.realGoalsA : '';
-                    const valB = m.realGoalsB !== null ? m.realGoalsB : '';
-                    const color = m.realGoalsA !== null ? 'border-success' : '';
+                    const jugado = m.realGoalsA !== null && m.realGoalsA !== undefined && m.realGoalsA !== '';
+                    const valA = jugado ? m.realGoalsA : '';
+                    const valB = jugado ? m.realGoalsB : '';
+                    const borde = jugado ? 'border border-success border-2' : 'border-0';
 
                     col.innerHTML = `
-                        <div class="card shadow-sm text-center ${color}">
-                            <div class="card-body">
-                                <h6 class="mb-3">${m.teamA} vs ${m.teamB}</h6>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <input type="number" id="golesA-${m.id}" class="form-control text-center w-25" value="${valA}" min="0">
-                                    <span class="mx-3">-</span>
-                                    <input type="number" id="golesB-${m.id}" class="form-control text-center w-25" value="${valB}" min="0">
+                        <div class="card shadow-sm ${borde}">
+                            <div class="card-body py-3">
+                                <div class="row align-items-center m-0">
+                                    <div class="col-4 text-end fw-bold fs-6 text-truncate" title="${m.teamA}">${m.teamA}</div>
+                                    
+                                    <div class="col-4 px-0">
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <input type="number" id="golesA-${m.id}" class="form-control text-center px-1" value="${valA}" min="0" style="max-width: 50px;">
+                                            <span class="mx-2 fw-bold text-muted">-</span>
+                                            <input type="number" id="golesB-${m.id}" class="form-control text-center px-1" value="${valB}" min="0" style="max-width: 50px;">
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <button class="btn btn-primary btn-sm px-3" onclick="guardarResultado(${m.id})">Guardar</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-4 text-start fw-bold fs-6 text-truncate" title="${m.teamB}">${m.teamB}</div>
                                 </div>
-                                <button class="btn btn-primary mt-3 w-100 btn-sm" onclick="guardarResultado(${m.id})">Guardar Resultado</button>
                             </div>
                         </div>
                     `;
@@ -99,9 +109,8 @@
                 });
 
                 if (response.ok) {
-                    alert('¡Resultado guardado y puntos sumados a los familiares!');
-                    // Recargar la página para que el recuadro se marque en verde
-                    location.reload();
+                    alert('¡Resultado guardado!');
+                    location.reload(); // Recarga para mostrar el borde verde
                 }
             } catch (error) {
                 console.error("Error:", error);

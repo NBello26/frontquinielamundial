@@ -19,7 +19,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container mt-4 mb-5" style="max-width: 800px;">
         <h2 class="text-center mb-4">Resultados de los Partidos</h2>
 
         <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
@@ -44,27 +44,35 @@
                 const matches = await response.json();
 
                 matches.forEach((m, index) => {
-                    // Determinar a qué fecha pertenece (Cada 24 partidos es una fecha nueva)
                     let contenedorId = 'lista-fecha1';
                     if (index >= 24 && index < 48) contenedorId = 'lista-fecha2';
                     if (index >= 48) contenedorId = 'lista-fecha3';
 
                     const contenedor = document.getElementById(contenedorId);
                     const col = document.createElement('div');
-                    col.className = 'col-md-4 col-sm-6 mb-3';
+                    col.className = 'col-12 mb-2'; // Ocupa todo el ancho
                     
-                    const jugado = m.realGoalsA !== null;
-                    const claseColor = jugado ? 'bg-success text-white' : 'bg-white';
-                    const textoGoles = jugado ? `${m.realGoalsA} - ${m.realGoalsB}` : 'VS';
+                    // Validación mejorada para asegurar que muestre resultados incluyendo el 0
+                    const jugado = m.realGoalsA !== null && m.realGoalsA !== undefined && m.realGoalsA !== '';
 
                     col.innerHTML = `
-                        <div class="card shadow-sm text-center border-0">
-                            <div class="card-header ${claseColor} fw-bold">
-                                ${jugado ? 'Finalizado' : 'Por jugar'}
-                            </div>
-                            <div class="card-body">
-                                <h5 class="mb-3">${m.teamA} <br><small class="text-muted">vs</small><br> ${m.teamB}</h5>
-                                <h2 class="mb-0 fw-bold">${textoGoles}</h2>
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body py-3">
+                                <div class="row align-items-center m-0">
+                                    <div class="col-4 text-end fw-bold fs-5 text-truncate" title="${m.teamA}">${m.teamA}</div>
+                                    
+                                    <div class="col-4 text-center">
+                                        ${jugado ? 
+                                            `<span class="badge bg-success fs-5 px-3 py-2 w-100">${m.realGoalsA} - ${m.realGoalsB}</span>
+                                             <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Finalizado</small>` 
+                                            : 
+                                            `<span class="badge bg-secondary fs-6 px-3 py-2 w-100">VS</span>
+                                             <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Por jugar</small>`
+                                        }
+                                    </div>
+                                    
+                                    <div class="col-4 text-start fw-bold fs-5 text-truncate" title="${m.teamB}">${m.teamB}</div>
+                                </div>
                             </div>
                         </div>
                     `;
