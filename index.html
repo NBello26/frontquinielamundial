@@ -12,8 +12,10 @@
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link active" href="index.html">Posiciones</a></li>
-                    <li class="nav-item"><a class="nav-link" href="partidos.html">Partidos y Resultados</a></li>
-                    <li class="nav-item"><a class="btn btn-success ms-3" id="btn-nuevo-part" href="nuevo-participante.html" style="display: none;">+ Nuevo Participante</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item admin-only" style="display: none;"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only" style="display: none;"><a class="btn btn-success ms-3 btn-sm" href="nuevo-participante.html">+ Nuevo Participante</a></li>
+                    
                     <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
             </div>
@@ -42,18 +44,17 @@
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api/participants';
-        const ADMIN_PASSWORD = 'familia2026'; // Puedes cambiar esta contraseña por la que quieras
+        const ADMIN_PASSWORD = 'familia2026';
 
         function verificarAdmin() {
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            document.getElementById('btn-nuevo-part').style.display = isAdmin ? 'block' : 'none';
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'block' : 'none');
             document.getElementById('btn-auth').innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
             document.getElementById('btn-auth').className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
         }
 
         function toggleAuth() {
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            if (isAdmin) {
+            if (localStorage.getItem('isAdmin') === 'true') {
                 localStorage.removeItem('isAdmin');
                 alert('Sesión cerrada');
                 verificarAdmin();
@@ -76,14 +77,9 @@
                 const tbody = document.getElementById('tabla-participantes');
                 tbody.innerHTML = '';
 
-                if (participants.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" class="text-center">Aún no hay participantes.</td></tr>';
-                    return;
-                }
-
                 participants.forEach((p, index) => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${index + 1}</td><td>${p.name}</td><td><strong>${p.totalPoints}</strong></td>`;
+                    tr.innerHTML = `<td>${index + 1}</td><td>${p.name}</td><td><strong class="fs-5">${p.totalPoints}</strong></td>`;
                     tbody.appendChild(tr);
                 });
             } catch (error) {

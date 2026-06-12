@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiniela Mundial - Resultados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="resultados.html">Resultados</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="text-center mb-4">Resultados de los Partidos</h2>
+
+        <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#fecha1">Fecha 1</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#fecha2">Fecha 2</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#fecha3">Fecha 3</button></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="fecha1"><div class="row" id="lista-fecha1"></div></div>
+            <div class="tab-pane fade" id="fecha2"><div class="row" id="lista-fecha2"></div></div>
+            <div class="tab-pane fade" id="fecha3"><div class="row" id="lista-fecha3"></div></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+
+        async function cargarPartidos() {
+            try {
+                const response = await fetch(`${API_URL}/matches`);
+                const matches = await response.json();
+
+                matches.forEach((m, index) => {
+                    // Determinar a qué fecha pertenece (Cada 24 partidos es una fecha nueva)
+                    let contenedorId = 'lista-fecha1';
+                    if (index >= 24 && index < 48) contenedorId = 'lista-fecha2';
+                    if (index >= 48) contenedorId = 'lista-fecha3';
+
+                    const contenedor = document.getElementById(contenedorId);
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 col-sm-6 mb-3';
+                    
+                    const jugado = m.realGoalsA !== null;
+                    const claseColor = jugado ? 'bg-success text-white' : 'bg-white';
+                    const textoGoles = jugado ? `${m.realGoalsA} - ${m.realGoalsB}` : 'VS';
+
+                    col.innerHTML = `
+                        <div class="card shadow-sm text-center border-0">
+                            <div class="card-header ${claseColor} fw-bold">
+                                ${jugado ? 'Finalizado' : 'Por jugar'}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="mb-3">${m.teamA} <br><small class="text-muted">vs</small><br> ${m.teamB}</h5>
+                                <h2 class="mb-0 fw-bold">${textoGoles}</h2>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.appendChild(col);
+                });
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+        cargarPartidos();
+    </script>
+</body>
+</html>
