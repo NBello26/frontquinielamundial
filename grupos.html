@@ -43,8 +43,12 @@
             <table class="table table-hover align-middle text-center mb-0">
                 <thead class="table-dark">
                     <tr>
+                        <th>#</th>
                         <th class="text-start ps-3">Equipo</th>
                         <th>PJ</th>
+                        <th>GF</th>
+                        <th>GC</th>
+                        <th>DG</th>
                         <th>Pts</th>
                     </tr>
                 </thead>
@@ -72,28 +76,90 @@
                 
                 const stats = {};
                 partidosGrupo.forEach(m => {
-                    [m.teamA, m.teamB].forEach(t => { if(!stats[t]) stats[t] = { pts: 0, pj: 0 }; });
-                    
+                    [m.teamA, m.teamB].forEach(t => {
+                            if (!stats[t]) {
+                                stats[t] = {
+                                    pts: 0,
+                                    pj: 0,
+                                    gf: 0,
+                                    gc: 0,
+                                    dg: 0
+                                };
+                            }
+                        });
                     if (m.realGoalsA !== null && m.realGoalsB !== null) {
-                        stats[m.teamA].pj++; stats[m.teamB].pj++;
-                        if (m.realGoalsA > m.realGoalsB) stats[m.teamA].pts += 3;
-                        else if (m.realGoalsA < m.realGoalsB) stats[m.teamB].pts += 3;
-                        else { stats[m.teamA].pts += 1; stats[m.teamB].pts += 1; }
+                        stats[m.teamA].pj++;
+                        stats[m.teamB].pj++;
+
+                        stats[m.teamA].gf += m.realGoalsA;
+                        stats[m.teamA].gc += m.realGoalsB;
+
+                        stats[m.teamB].gf += m.realGoalsB;
+                        stats[m.teamB].gc += m.realGoalsA;
+
+                        if (m.realGoalsA > m.realGoalsB) {
+                            stats[m.teamA].pts += 3;
+                        }
+                        else if (m.realGoalsA < m.realGoalsB) {
+                            stats[m.teamB].pts += 3;
+                        }
+                        else {
+                            stats[m.teamA].pts += 1;
+                            stats[m.teamB].pts += 1;
+                        }
                     }
                 });
 
-                const equiposOrdenados = Object.keys(stats).sort((a, b) => stats[b].pts - stats[a].pts);
+                Object.values(stats).forEach(team => {
+                team.dg = team.gf - team.gc;
+                });
+                const equiposOrdenados = Object.keys(stats).sort((a, b) => {
+                    if (stats[b].pts !== stats[a].pts)
+                        return stats[b].pts - stats[a].pts;
+
+                    if (stats[b].dg !== stats[a].dg)
+                        return stats[b].dg - stats[a].dg;
+
+                    if (stats[b].gf !== stats[a].gf)
+                        return stats[b].gf - stats[a].gf;
+
+                    return a.localeCompare(b);
+                });
                 
-                tablaBody.innerHTML = equiposOrdenados.map(t => `
+                tablaBody.innerHTML = equiposOrdenados.map((t, index) => `
                     <tr>
-                        <td class="text-start ps-3 fw-bold">${t}</td>
+                        <td>${index + 1}</td>
+
+                        <td class="text-start ps-3 ${index < 2 ? 'text-success fw-bold' : ''}">
+                            ${t}
+                        </td>
+
                         <td>${stats[t].pj}</td>
-                        <td class="fw-bold text-primary">${stats[t].pts}</td>
+
+                        <td>${stats[t].gf}</td>
+
+                        <td>${stats[t].gc}</td>
+
+                        <td class="${
+                            stats[t].dg > 0
+                                ? 'text-success fw-bold'
+                                : stats[t].dg < 0
+                                    ? 'text-danger fw-bold'
+                                    : ''
+                        }">
+                            ${stats[t].dg > 0 ? '+' + stats[t].dg : stats[t].dg}
+                        </td>
+
+                        <td class="fw-bold text-primary">
+                            ${stats[t].pts}
+                        </td>
                     </tr>
-                `).join('');
+                    `).join('');
 
             } catch (e) {
-                tablaBody.innerHTML = '<tr><td colspan="3">Error al cargar datos.</td></tr>';
+                tablaBody.innerHTML =
+                '<tr><td colspan="7">Error al cargar datos.</td></tr>';
+                console.error("Error al cargar partidos:", e);
             }
         }
 
