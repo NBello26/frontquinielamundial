@@ -2,15 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Quiniela Mundial - Grupos</title>
+    <title>Grupos - Mundial 2026</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        /* Estilos para resaltar las posiciones de clasificación */
-        .clasificado-directo {
-            border-left: 4px solid #28a745 !important;
-        }
-    </style>
 </head>
 <body class="bg-light">
 
@@ -24,9 +17,9 @@
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
                     <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
-                    <li class="nav-item"><a class="nav-link active fw-bold text-info" href="grupos.html">📊 Grupos</a></li>
                     
                     <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
                     <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
@@ -37,219 +30,87 @@
         </div>
     </nav>
 
-    <div class="container mt-4 mb-5" style="max-width: 750px;">
-        <h2 class="text-center mb-2 fw-bold">Tablas de Posiciones Oficiales</h2>
-        <p class="text-center text-muted mb-4">Sigue de cerca el rendimiento real de los equipos en el Mundial</p>
+    <div class="container mt-4" style="max-width: 700px;">
+        <h3 class="text-center mb-4">Posiciones por Grupo</h3>
         
-        <div class="card shadow-sm border-0 mb-4 bg-white">
-            <div class="card-body p-4">
-                <label for="select-grupo" class="form-label fw-bold text-secondary fs-6">Selecciona el Grupo del Mundial:</label>
-                <select id="select-grupo" class="form-select form-select-lg border-info shadow-sm fw-bold" onchange="cambiarGrupo()">
-                    <option value="">Cargando grupos...</option>
-                </select>
-            </div>
+        <!-- Selector de Grupos A-L -->
+        <div class="mb-4">
+            <select id="select-grupo" class="form-select form-select-lg border-primary shadow-sm" onchange="actualizarTabla()">
+                <option value="A">Grupo A</option>
+                <option value="B">Grupo B</option>
+                <option value="C">Grupo C</option>
+                <option value="D">Grupo D</option>
+                <option value="E">Grupo E</option>
+                <option value="F">Grupo F</option>
+                <option value="G">Grupo G</option>
+                <option value="H">Grupo H</option>
+                <option value="I">Grupo I</option>
+                <option value="J">Grupo J</option>
+                <option value="K">Grupo K</option>
+                <option value="L">Grupo L</option>
+            </select>
         </div>
 
-        <div class="card shadow-sm border-0 bg-white">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-dark text-center">
-                            <tr>
-                                <th style="width: 60px;">Pos</th>
-                                <th class="text-start">Equipo</th>
-                                <th title="Partidos Jugados">PJ</th>
-                                <th title="Ganados">G</th>
-                                <th title="Empatados">E</th>
-                                <th title="Perdidos">P</th>
-                                <th title="Goles a Favor">GF</th>
-                                <th title="Goles en Contra">GC</th>
-                                <th title="Diferencia de Goles">DG</th>
-                                <th title="Puntos Totales" class="bg-primary text-white">Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-cuerpo" class="text-center fw-semibold">
-                            <tr>
-                                <td colspan="10" class="text-muted py-5">
-                                    <div class="spinner-border text-info spinner-border-sm me-2"></div>
-                                    Calculando estadísticas en tiempo real...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-3 d-flex align-items-center gap-2 px-2">
-            <span class="badge bg-success" style="width: 15px; height: 15px; border-radius: 3px;"> </span>
-            <small class="text-muted">Los dos mejores de cada grupo avanzan a la siguiente ronda.</small>
+        <div class="card shadow-sm">
+            <table class="table table-hover align-middle text-center mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-start ps-3">Equipo</th>
+                        <th>PJ</th>
+                        <th>Pts</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body">
+                    <!-- Los datos se cargan aquí -->
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
-        let datosGruposGlobales = {}; // Aquí guardaremos todas las tablas calculadas
 
-        function verificarAdmin() {
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('d-none', !isAdmin));
-            const btnAuth = document.getElementById('btn-auth');
-            if(btnAuth) {
-                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
-                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
-            }
-        }
+        async function actualizarTabla() {
+            const grupoSeleccionado = document.getElementById('select-grupo').value;
+            const tablaBody = document.getElementById('tabla-body');
+            tablaBody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
 
-        function toggleAuth() {
-            if (localStorage.getItem('isAdmin') === 'true') {
-                localStorage.removeItem('isAdmin');
-                alert('Sesión cerrada');
-                window.location.reload();
-            } else {
-                const pass = prompt('Introduce la contraseña de administrador:');
-                if (pass === 'familia2026') {
-                    localStorage.setItem('isAdmin', 'true');
-                    alert('¡Sesión iniciada!');
-                    verificarAdmin();
-                } else if (pass !== null) {
-                    alert('Contraseña incorrecta');
-                }
-            }
-        }
-
-        verificarAdmin();
-
-        async function inicializarTablas() {
             try {
                 const response = await fetch(`${API_URL}/matches`);
                 const matches = await response.json();
                 
-                const grupos = {};
-                const letrasGrupos = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-
-                // 1. Procesar todos los partidos para armar las estadísticas matemáticamente
-                matches.forEach(m => {
-                    // Deducimos el grupo: Si tu API trae m.group úsalo, si no, lo calcula por el ID del partido (2 partidos por grupo por fecha)
-                    let grp = "A";
-                    if (m.group) {
-                        grp = m.group.toUpperCase();
-                    } else {
-                        if (m.id >= 1 && m.id <= 24) grp = letrasGrupos[Math.floor((m.id - 1) / 2)];
-                        else if (m.id >= 25 && m.id <= 48) grp = letrasGrupos[Math.floor((m.id - 25) / 2)];
-                        else if (m.id >= 49 && m.id <= 72) grp = letrasGrupos[Math.floor((m.id - 49) / 2)];
-                    }
-
-                    if (!grupos[grp]) grupos[grp] = {};
-
-                    // Registrar los equipos en el grupo si no existen con valores en 0
-                    if (!grupos[grp][m.teamA]) grupos[grp][m.teamA] = { name: m.teamA, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
-                    if (!grupos[grp][m.teamB]) grupos[grp][m.teamB] = { name: m.teamB, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
-
-                    const valA = m.realGoalsA;
-                    const valB = m.realGoalsB;
-
-                    // Si el partido ya fue jugado y tiene goles cargados por el admin
-                    if (valA !== null && valB !== null && valA !== '' && valB !== '') {
-                        const gA = parseInt(valA, 10);
-                        const gB = parseInt(valB, 10);
-
-                        grupos[grp][m.teamA].pj++;
-                        grupos[grp][m.teamB].pj++;
-                        grupos[grp][m.teamA].gf += gA;
-                        grupos[grp][m.teamA].gc += gB;
-                        grupos[grp][m.teamB].gf += gB;
-                        grupos[grp][m.teamB].gc += gA;
-
-                        if (gA > gB) {
-                            grupos[grp][m.teamA].g++;
-                            grupos[grp][m.teamA].pts += 3;
-                            grupos[grp][m.teamB].p++;
-                        } else if (gA < gB) {
-                            grupos[grp][m.teamB].g++;
-                            grupos[grp][m.teamB].pts += 3;
-                            grupos[grp][m.teamA].p++;
-                        } else {
-                            grupos[grp][m.teamA].e++;
-                            grupos[grp][m.teamA].pts += 1;
-                            grupos[grp][m.teamB].e++;
-                            grupos[grp][m.teamB].pts += 1;
-                        }
+                // Filtramos partidos solo del grupo seleccionado (ajusta según cómo guardes el campo "group" en tu API)
+                const partidosGrupo = matches.filter(m => m.group === grupoSeleccionado);
+                
+                const stats = {};
+                partidosGrupo.forEach(m => {
+                    [m.teamA, m.teamB].forEach(t => { if(!stats[t]) stats[t] = { pts: 0, pj: 0 }; });
+                    
+                    if (m.realGoalsA !== null && m.realGoalsB !== null) {
+                        stats[m.teamA].pj++; stats[m.teamB].pj++;
+                        if (m.realGoalsA > m.realGoalsB) stats[m.teamA].pts += 3;
+                        else if (m.realGoalsA < m.realGoalsB) stats[m.teamB].pts += 3;
+                        else { stats[m.teamA].pts += 1; stats[m.teamB].pts += 1; }
                     }
                 });
 
-                // 2. Convertir a listas y ordenar rigurosamente por las reglas de la FIFA (Pts -> Diferencia Goles -> Goles Favor)
-                Object.keys(grupos).forEach(grp => {
-                    datosGruposGlobales[grp] = Object.values(grupos[grp]);
-                    datosGruposGlobales[grp].forEach(t => t.dg = t.gf - t.gc);
-                    
-                    datosGruposGlobales[grp].sort((a, b) => {
-                        if (b.pts !== a.pts) return b.pts - a.pts;
-                        if (b.dg !== a.dg) return b.dg - a.dg;
-                        if (b.gf !== a.gf) return b.gf - a.gf;
-                        return a.name.localeCompare(b.name);
-                    });
-                });
+                const equiposOrdenados = Object.keys(stats).sort((a, b) => stats[b].pts - stats[a].pts);
+                
+                tablaBody.innerHTML = equiposOrdenados.map(t => `
+                    <tr>
+                        <td class="text-start ps-3 fw-bold">${t}</td>
+                        <td>${stats[t].pj}</td>
+                        <td class="fw-bold text-primary">${stats[t].pts}</td>
+                    </tr>
+                `).join('');
 
-                // 3. Renderizar las opciones ordenadas en el selector desplegable
-                const select = document.getElementById('select-grupo');
-                if(select) {
-                    select.innerHTML = '';
-                    Object.keys(datosGruposGlobales).sort().forEach(grp => {
-                        const opt = document.createElement('option');
-                        opt.value = grp;
-                        opt.textContent = `GRUPO ${grp}`;
-                        select.appendChild(opt);
-                    });
-                    
-                    // Mostrar por defecto el Grupo A apenas cargue
-                    renderizarTablaGrupo(select.value);
-                }
-
-            } catch (error) {
-                console.error("Error calculando los grupos:", error);
-                document.getElementById('tabla-cuerpo').innerHTML = `<tr><td colspan="10" class="text-danger py-4">Error al conectar con la base de datos de partidos.</td></tr>`;
+            } catch (e) {
+                tablaBody.innerHTML = '<tr><td colspan="3">Error al cargar datos.</td></tr>';
             }
         }
 
-        function renderizarTablaGrupo(grupo) {
-            const cuerpo = document.getElementById('tabla-cuerpo');
-            if(!cuerpo || !datosGruposGlobales[grupo]) return;
-
-            cuerpo.innerHTML = '';
-            
-            datosGruposGlobales[grupo].forEach((equipo, index) => {
-                const fila = document.createElement('tr');
-                const numeroPosicion = index + 1;
-                
-                // Resaltar con borde verde a los dos primeros clasificados
-                if (numeroPosicion <= 2) {
-                    fila.className = 'clasificado-directo table-success table-opacity-25';
-                }
-
-                fila.innerHTML = `
-                    <td class="fw-bold text-secondary">${numeroPosicion}</td>
-                    <td class="text-start fw-bold text-dark">${equipo.name}</td>
-                    <td>${equipo.pj}</td>
-                    <td class="text-success">${equipo.g}</td>
-                    <td class="text-muted">${equipo.e}</td>
-                    <td class="text-danger">${equipo.p}</td>
-                    <td>${equipo.gf}</td>
-                    <td>${equipo.gc}</td>
-                    <td class="${equipo.dg > 0 ? 'text-success' : equipo.dg < 0 ? 'text-danger' : 'text-muted'}">${equipo.dg > 0 ? '+' + equipo.dg : equipo.dg}</td>
-                    <td class="bg-primary bg-opacity-10 text-primary fw-bold fs-5">${equipo.pts}</td>
-                `;
-                cuerpo.appendChild(fila);
-            });
-        }
-
-        function cambiarGrupo() {
-            const grupoSeleccionado = document.getElementById('select-grupo').value;
-            renderizarTablaGrupo(grupoSeleccionado);
-        }
-
-        // Ejecutar carga de datos al abrir la página
-        inicializarTablas();
+        // Carga inicial
+        actualizarTabla();
     </script>
 </body>
 </html>
