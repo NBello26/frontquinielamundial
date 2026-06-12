@@ -25,16 +25,28 @@
 
         <div class="card shadow-sm border-0 mb-4 bg-white">
             <div class="card-body">
-                <label for="select-participante" class="form-label fw-bold">Elige a un participante:</label>
-                <select id="select-participante" class="form-select form-select-lg" onchange="cargarPredicciones()">
+                <label for="select-participante" class="form-label fw-bold">Elige a un participante (Ordenados por Puntos):</label>
+                <select id="select-participante" class="form-select form-select-lg border-primary" onchange="cargarPredicciones()">
                     <option value="">Cargando participantes...</option>
                 </select>
             </div>
         </div>
 
-        <div id="lista-predicciones" class="row">
-            <div class="col-12 text-center text-muted mt-3">
-                <p>Selecciona un nombre arriba para ver su quiniela.</p>
+        <div id="mensaje-inicial" class="text-center text-muted mt-4">
+            <p>Selecciona un nombre arriba para ver su quiniela separada por fechas.</p>
+        </div>
+
+        <div id="contenedor-fechas" style="display: none;">
+            <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pred-fecha1">Fecha 1</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pred-fecha2">Fecha 2</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pred-fecha3">Fecha 3</button></li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="pred-fecha1"><div class="row" id="lista-pred-fecha1"></div></div>
+                <div class="tab-pane fade" id="pred-fecha2"><div class="row" id="lista-pred-fecha2"></div></div>
+                <div class="tab-pane fade" id="pred-fecha3"><div class="row" id="lista-pred-fecha3"></div></div>
             </div>
         </div>
     </div>
@@ -42,7 +54,24 @@
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
 
-        // 1. Cargar la lista desplegable
+        // Lógica matemática para calcular puntos en pantalla
+        function calcularPuntos(predA, predB, realA, realB) {
+            if (predA === realA && predB === realB) return 5;
+            
+            const prediceEmpate = predA === predB;
+            const fueEmpate = realA === realB;
+            const prediceGanaA = predA > predB;
+            const ganoA = realA > realB;
+            const prediceGanaB = predA < predB;
+            const ganoB = realA < realB;
+
+            if ((prediceEmpate && fueEmpate) || (prediceGanaA && ganoA) || (prediceGanaB && ganoB)) {
+                return 3;
+            }
+            return 0;
+        }
+
+        // 1. Cargar la lista desplegable ordenada de Mayor a Menor puntaje
         async function cargarListaParticipantes() {
             try {
                 const response = await fetch(`${API_URL}/participants`);
@@ -51,11 +80,12 @@
                 const select = document.getElementById('select-participante');
                 select.innerHTML = '<option value="">Selecciona un participante...</option>';
 
-                // Ordenamos alfabéticamente para que sea más fácil buscarlos
-                participants.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
+                // Ordenar por totalPoints (de mayor a menor)
+                participants.sort((a, b) => b.totalPoints - a.totalPoints).forEach((p, index) => {
                     const option = document.createElement('option');
                     option.value = p.id;
-                    option.textContent = `${p.name} (${p.totalPoints} pts)`;
+                    // Agregamos la posición (1º, 2º...) para que sea más competitivo
+                    option.textContent = `#${index + 1} - ${p.name} (${p.totalPoints} pts)`;
                     select.appendChild(option);
                 });
             } catch (error) {
@@ -64,54 +94,87 @@
             }
         }
 
-        // 2. Cargar los partidos cuando seleccionan a alguien
+        // 2. Cargar las predicciones y dividirlas por fecha
         async function cargarPredicciones() {
             const participanteId = document.getElementById('select-participante').value;
-            const contenedor = document.getElementById('lista-predicciones');
+            const msgInicial = document.getElementById('mensaje-inicial');
+            const contFechas = document.getElementById('contenedor-fechas');
             
             if (!participanteId) {
-                contenedor.innerHTML = '<div class="col-12 text-center text-muted mt-3"><p>Selecciona un nombre arriba para ver su quiniela.</p></div>';
+                msgInicial.style.display = 'block';
+                contFechas.style.display = 'none';
                 return;
             }
 
-            contenedor.innerHTML = '<div class="col-12 text-center mt-3"><div class="spinner-border text-primary" role="status"></div><p>Cargando quiniela...</p></div>';
+            msgInicial.style.display = 'none';
+            contFechas.style.display = 'block';
+
+            // Limpiar las 3 listas antes de llenarlas
+            document.getElementById('lista-pred-fecha1').innerHTML = '';
+            document.getElementById('lista-pred-fecha2').innerHTML = '';
+            document.getElementById('lista-pred-fecha3').innerHTML = '';
 
             try {
                 const response = await fetch(`${API_URL}/participants/${participanteId}`);
                 const data = await response.json();
                 
-                contenedor.innerHTML = '';
-
                 if (!data.predictions || data.predictions.length === 0) {
-                    contenedor.innerHTML = '<div class="col-12 text-center text-danger mt-3">Este participante no tiene predicciones registradas.</div>';
+                    document.getElementById('lista-pred-fecha1').innerHTML = '<div class="col-12 text-center text-danger mt-3">No hay predicciones.</div>';
                     return;
                 }
 
                 data.predictions.forEach(pred => {
-                    const col = document.createElement('div');
-                    col.className = 'col-12 mb-3';
-                    
                     const match = pred.match;
+                    
+                    // Decidir en qué pestaña va según el ID del partido
+                    let contenedorId = 'lista-pred-fecha1';
+                    if (match.id >= 25 && match.id <= 48) contenedorId = 'lista-pred-fecha2';
+                    if (match.id > 48) contenedorId = 'lista-pred-fecha3';
+                    
+                    const contenedor = document.getElementById(contenedorId);
+
+                    // Análisis de resultados y puntos
                     const realA = match.realGoalsA ?? '';
                     const realB = match.realGoalsB ?? '';
                     const jugado = realA !== '' && realB !== '';
+                    
+                    let puntosHTML = '';
+                    let colorBorde = 'border-0';
 
-                    // Mostrar el resultado real abajo de la predicción si ya se jugó
+                    if (jugado) {
+                        const puntos = calcularPuntos(pred.goalsA, pred.goalsB, realA, realB);
+                        
+                        // Darle estilo a los puntos ganados (Verde para 5, Amarillo para 3, Gris/Rojo para 0)
+                        if (puntos === 5) {
+                            puntosHTML = `<span class="badge bg-success mt-2 fs-6">+5 Puntos (Acierto Exacto)</span>`;
+                            colorBorde = 'border border-success';
+                        } else if (puntos === 3) {
+                            puntosHTML = `<span class="badge bg-warning text-dark mt-2 fs-6">+3 Puntos (Tendencia)</span>`;
+                            colorBorde = 'border border-warning';
+                        } else {
+                            puntosHTML = `<span class="badge bg-danger mt-2">0 Puntos</span>`;
+                            colorBorde = 'border border-danger opacity-75';
+                        }
+                    }
+
                     const textoReal = jugado 
-                        ? `<span class="text-success fw-bold">Real: ${realA} - ${realB}</span>` 
+                        ? `<span class="fw-bold">Resultado real: ${realA} - ${realB}</span>` 
                         : `<span class="text-muted">Por jugar</span>`;
 
+                    const col = document.createElement('div');
+                    col.className = 'col-12 mb-3';
                     col.innerHTML = `
-                        <div class="card shadow-sm border-0">
+                        <div class="card shadow-sm ${colorBorde}">
                             <div class="card-body py-3">
                                 <div class="row align-items-center m-0">
                                     <div class="col-4 text-end fw-bold fs-6 text-truncate" title="${match.teamA}">${match.teamA}</div>
                                     
-                                    <div class="col-4 text-center">
+                                    <div class="col-4 text-center px-0">
                                         <span class="badge bg-primary fs-5 px-3 py-2 w-100 shadow-sm" title="Su predicción">
                                             ${pred.goalsA} - ${pred.goalsB}
                                         </span>
-                                        <small class="d-block mt-1" style="font-size: 0.75rem;">${textoReal}</small>
+                                        <small class="d-block mt-1 mb-1" style="font-size: 0.75rem;">${textoReal}</small>
+                                        ${puntosHTML}
                                     </div>
                                     
                                     <div class="col-4 text-start fw-bold fs-6 text-truncate" title="${match.teamB}">${match.teamB}</div>
@@ -123,11 +186,9 @@
                 });
             } catch (error) {
                 console.error("Error:", error);
-                contenedor.innerHTML = '<div class="col-12 text-center text-danger mt-3">Error al cargar las predicciones.</div>';
             }
         }
 
-        // Iniciar cargando la lista
         cargarListaParticipantes();
     </script>
 </body>
