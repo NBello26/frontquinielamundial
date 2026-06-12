@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiniela Mundial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <h1 class="text-center">Quiniela Mundial - Tabla de Posiciones</h1>
+    
+    <table class="table table-hover mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>Participante</th>
+                <th>Puntos</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-participantes">
+            </tbody>
+    </table>
+
+    <script>
+        // ¡IMPORTANTE! Cambia esta URL por la URL pública que te dé Render para tu backend
+        const API_URL = 'https://tu-backend-en-render.onrender.com/api/participants';
+
+        async function cargarParticipantes() {
+            try {
+                const response = await fetch(API_URL);
+                const participants = await response.json();
+                
+                const tbody = document.getElementById('tabla-participantes');
+                tbody.innerHTML = ''; // Limpiar tabla
+
+                participants.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${p.name}</td>
+                        <td><strong>${p.totalPoints}</strong></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Error al cargar la quiniela:", error);
+                document.getElementById('tabla-participantes').innerHTML = 
+                    '<tr><td colspan="2" class="text-center text-danger">Error al cargar los datos</td></tr>';
+            }
+        }
+
+        // Cargar los datos al abrir la página
+        cargarParticipantes();
+    </script>
+</body>
+</html>
