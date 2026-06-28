@@ -13,260 +13,164 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
-                            Posiciones
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="index.html">Tabla General</a></li>
-                            <li><a class="dropdown-item fw-bold text-primary" href="posiciones-playoffs.html">Tabla Playoffs 🏆</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
-                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
-                    
-                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
-                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
-                    
-                    <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html">Tabla General</a></li>
+                    <li class="nav-item"><a class="nav-link" href="posiciones-playoffs.html">Posiciones Playoffs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados Reales</a></li>
+                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Ver por Familiar</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="predicciones-partido.html">Ver por Partido</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-outline-warning btn-sm text-warning ms-2 px-3" href="admin-resultados.html">Admin</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4 mb-5" style="max-width: 1000px;"> <h2 class="text-center mb-4">Predicciones por Partido</h2>
-
-        <div class="d-flex justify-content-center mb-4">
-            <div class="btn-group shadow-sm" role="group" aria-label="Cambiar vista de predicciones">
-                <a href="predicciones.html" class="btn btn-outline-primary px-4">👤 Por Participante</a>
-                <button type="button" class="btn btn-primary active px-4">⚽ Por Partido</button>
-            </div>
-        </div>
-        <div class="card shadow-sm border-0 mb-4 bg-white">
-            <div class="card-body">
-                <label for="select-partido" class="form-label fw-bold">Elige un partido:</label>
-                <select id="select-partido" class="form-select form-select-lg border-success" onchange="cargarPrediccionesDelPartido()">
-                    <option value="">Cargando partidos...</option>
+    <div class="container my-4">
+        <h2 class="text-center mb-4">📊 Análisis de Apuestas por Partido</h2>
+        
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6">
+                <label for="select-partido" class="form-label fw-bold">Selecciona un Partido para Analizar:</label>
+                <select id="select-partido" class="form-select shadow-sm" onchange="cargarDetallesPartido()">
+                    <option value="">-- Elige un Partido para Inspeccionar --</option>
                 </select>
             </div>
         </div>
 
-        <div id="mensaje-inicial" class="text-center text-muted mt-4">
-            <p>Selecciona un partido arriba para ver qué apostó cada participante.</p>
-        </div>
+        <div id="cabecera-partido" class="mb-4"></div>
 
-        <div id="info-partido-container" class="d-none mb-4 text-center">
-            <h4 id="titulo-partido" class="fw-bold"></h4>
-            <p id="resultado-real-partido" class="text-muted fs-5"></p>
-        </div>
-
-        <div id="contenedor-predicciones" class="d-none">
-            <div class="row g-4" id="lista-predicciones">
-                </div>
+        <div class="row g-3" id="lista-predicciones-partido">
+            <div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para desplegar el desglose familiar.</div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
-        const ADMIN_PASSWORD = 'familia2026';
-
-        function verificarAdmin() {
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.classList.toggle('d-none', !isAdmin);
-            });
-            const btnAuth = document.getElementById('btn-auth');
-            if(btnAuth) {
-                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
-                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
-            }
-        }
-
-        function toggleAuth() {
-            if (localStorage.getItem('isAdmin') === 'true') {
-                localStorage.removeItem('isAdmin');
-                alert('Sesión cerrada');
-                window.location.href = 'index.html';
-            } else {
-                const pass = prompt('Introduce la contraseña de administrador:');
-                if (pass === ADMIN_PASSWORD) {
-                    localStorage.setItem('isAdmin', 'true');
-                    alert('¡Sesión iniciada como administrador!');
-                    verificarAdmin();
-                } else if (pass !== null) {
-                    alert('Contraseña incorrecta');
-                }
-            }
-        }
-
-        verificarAdmin();
-
-        function calcularPuntos(pA, pB, rA, rB) {
-            const predA = parseInt(pA, 10);
-            const predB = parseInt(pB, 10);
-            const realA = parseInt(rA, 10);
-            const realB = parseInt(rB, 10);
-
-            // 5 puntos si acierta el resultado exacto
-            if (predA === realA && predB === realB) return 5;
-            
-            // 3 puntos si acierta la tendencia (ganador o empate), pero no se suman con los 5
-            const prediceEmpate = predA === predB;
-            const fueEmpate = realA === realB;
-            const prediceGanaA = predA > predB;
-            const ganoA = realA > realB;
-            const prediceGanaB = predA < predB;
-            const ganoB = realA < realB;
-
-            if ((prediceEmpate && fueEmpate) || (prediceGanaA && ganoA) || (prediceGanaB && ganoB)) {
-                return 3;
-            }
-            return 0; // Si no acierta nada
-        }
+        const API_URL = "http://localhost:8080/api";
 
         async function cargarListaPartidos() {
             try {
-                const response = await fetch(`${API_URL}/matches`);
-                const matches = await response.json();
+                const res = await fetch(`${API_URL}/matches`);
+                const partidos = await res.json();
                 
-                const select = document.getElementById('select-partido');
-                select.innerHTML = '<option value="">Selecciona un partido...</option>';
-
-                matches.forEach(m => {
+                const selectElement = document.getElementById('select-partido');
+                selectElement.innerHTML = '<option value="">-- Elige un Partido para Inspeccionar --</option>';
+                
+                // Creamos los agrupadores nativos HTML
+                const grupoFaseGrupos = document.createElement('optgroup');
+                grupoFaseGrupos.label = "⚽ Fase de Grupos";
+                
+                const grupoPlayoffs = document.createElement('optgroup');
+                grupoPlayoffs.label = "🏆 Partidos de Playoffs (Eliminación Directa)";
+                
+                partidos.forEach(m => {
                     const option = document.createElement('option');
                     option.value = m.id;
-                    option.textContent = `Partido ${m.id}: ${m.teamA} vs ${m.teamB} (Grupo ${m.group})`;
-                    select.appendChild(option);
+                    
+                    if (m.group && m.group.length > 1) {
+                        option.textContent = `[${m.group}] ${m.teamA} vs ${m.teamB}`;
+                        grupoPlayoffs.appendChild(option);
+                    } else {
+                        option.textContent = `[Grupo ${m.group}] ${m.teamA} vs ${m.teamB}`;
+                        grupoFaseGrupos.appendChild(option);
+                    }
                 });
+                
+                selectElement.appendChild(grupoFaseGrupos);
+                selectElement.appendChild(grupoPlayoffs);
+                
             } catch (error) {
-                console.error("Error cargando partidos:", error);
-                document.getElementById('select-partido').innerHTML = '<option value="">Error al cargar</option>';
+                console.error("Error estructurando el selector de partidos:", error);
             }
         }
 
-        async function cargarPrediccionesDelPartido() {
+        async function cargarDetallesPartido() {
             const matchId = document.getElementById('select-partido').value;
-            const msgInicial = document.getElementById('mensaje-inicial');
-            const contInfo = document.getElementById('info-partido-container');
-            const contPreds = document.getElementById('contenedor-predicciones');
-            const lista = document.getElementById('lista-predicciones');
-            
+            const cabecera = document.getElementById('cabecera-partido');
+            const lista = document.getElementById('lista-predicciones-partido');
+
             if (!matchId) {
-                msgInicial.classList.remove('d-none');
-                contInfo.classList.add('d-none');
-                contPreds.classList.add('d-none');
+                cabecera.innerHTML = '';
+                lista.innerHTML = '<div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para desplegar el desglose familiar.</div>';
                 return;
             }
 
-            msgInicial.classList.add('d-none');
-            lista.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-success" role="status"></div></div>';
-            contInfo.classList.remove('d-none');
-            contPreds.classList.remove('d-none');
+            lista.innerHTML = '<div class="text-center py-5">⏳ Compilando apuestas...</div>';
 
             try {
-                const response = await fetch(`${API_URL}/matches/${matchId}/predictions`);
-                const data = await response.json();
+                const res = await fetch(`${API_URL}/matches/${matchId}/predictions`);
+                const data = await res.json();
+
                 const match = data.match;
                 const predictions = data.predictions;
 
-                // Actualizar encabezado del partido
-                document.getElementById('titulo-partido').textContent = `${match.teamA} vs ${match.teamB}`;
-                
-                const realA = match.realGoalsA ?? '';
-                const realB = match.realGoalsB ?? '';
-                const jugado = realA !== '' && realB !== '';
+                const jugado = match.realGoalsA !== null && match.realGoalsB !== null;
+                const textoResultadoReal = jugado ? `${match.realGoalsA} - ${match.realGoalsB}` : "VS";
+                const textoFase = match.group.length === 1 ? `Fase de Grupos - Grupo ${match.group}` : `Fase Final - ${match.group}`;
 
-                document.getElementById('resultado-real-partido').innerHTML = jugado 
-                    ? `Resultado Final: <span class="badge bg-dark">${realA} - ${realB}</span>`
-                    : '<span class="badge bg-secondary">Aún por jugar</span>';
+                // Imprimir cabecera de contexto
+                cabecera.innerHTML = `
+                    <div class="card bg-dark text-white shadow-sm">
+                        <div class="card-body text-center py-3">
+                            <div class="small text-warning text-uppercase fw-bold mb-1">${textoFase}</div>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <h4 class="mb-0 fw-bold px-3 text-truncate" style="max-width: 35%;">${match.teamA}</h4>
+                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-4 mx-2 px-3">${textoResultadoReal}</span>
+                                <h4 class="mb-0 fw-bold px-3 text-truncate" style="max-width: 35%;">${match.teamB}</h4>
+                            </div>
+                            <small class="d-block mt-2 ${jugado ? 'text-success fw-bold' : 'text-white-50'}">
+                                ${jugado ? '✓ Resultado Confirmado' : '⏳ Partido en Espera'}
+                            </small>
+                        </div>
+                    </div>
+                `;
 
                 if (predictions.length === 0) {
-                    lista.innerHTML = '<div class="col-12"><div class="alert alert-info text-center">Nadie ha ingresado predicciones para este partido aún.</div></div>';
+                    lista.innerHTML = '<div class="col-12"><div class="alert alert-info text-center">Nadie ha cargado predicciones para este partido todavía.</div></div>';
                     return;
                 }
 
-                // Arrays para separar las predicciones
-                let apuestasGanaA = [];
-                let apuestasEmpate = [];
-                let apuestasGanaB = [];
+                // Clasificar tendencias de apuestas
+                const apuestasGanaA = [];
+                const apuestasEmpate = [];
+                const apuestasGanaB = [];
 
-                predictions.forEach(pred => {
-                    const participante = pred.participant;
-                    let puntosHTML = '';
-                    let colorBorde = 'border-0';
-                    const predText = `${pred.goalsA} - ${pred.goalsB}`;
-
-                    if (jugado) {
-                        const puntos = calcularPuntos(pred.goalsA, pred.goalsB, realA, realB);
-                        if (puntos === 5) {
-                            puntosHTML = `<span class="badge bg-success mt-1">+5 Pts</span>`;
-                            colorBorde = 'border border-success border-2';
-                        } else if (puntos === 3) {
-                            puntosHTML = `<span class="badge bg-warning text-dark mt-1">+3 Pts</span>`;
-                            colorBorde = 'border border-warning border-2';
-                        } else {
-                            puntosHTML = `<span class="badge bg-danger mt-1">0 Pts</span>`;
-                            colorBorde = 'border border-danger opacity-75';
-                        }
-                    }
-
-                    // Tarjeta individual de participante
-                    const cardHTML = `
-                        <div class="card shadow-sm mb-2 ${colorBorde}">
-                            <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                                <div class="fw-bold text-truncate" style="font-size: 0.9rem; max-width: 65%;" title="${participante.name}">
-                                    👤 ${participante.name}
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-primary px-2 py-1">${predText}</span>
-                                    <div style="font-size: 0.8rem;">${puntosHTML}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Clasificamos la predicción
-                    if (pred.goalsA > pred.goalsB) {
-                        apuestasGanaA.push(cardHTML);
-                    } else if (pred.goalsA === pred.goalsB) {
-                        apuestasEmpate.push(cardHTML);
-                    } else {
-                        apuestasGanaB.push(cardHTML);
-                    }
+                predictions.forEach(p => {
+                    if (p.goalsA > p.goalsB) apuestasGanaA.push(p);
+                    else if (p.goalsA < p.goalsB) apuestasGanaB.push(p);
+                    else apuestasEmpate.push(p);
                 });
 
-                // Función auxiliar para renderizar listas o mostrar mensaje de "Vacío"
-                const renderColumna = (arrayApostadores) => {
-                    if (arrayApostadores.length === 0) {
-                        return '<div class="text-center text-muted small py-3 bg-light rounded border">Nadie apostó por esto</div>';
+                function renderColumna(arregloApuestas) {
+                    if (arregloApuestas.length === 0) {
+                        return '<p class="text-center text-muted small my-3">Sin apuestas en esta columna.</p>';
                     }
-                    return arrayApostadores.join('');
-                };
+                    return arregloApuestas.map(p => `
+                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-light rounded mb-2">
+                            <span class="text-capitalize small fw-bold text-truncate me-2" style="max-width: 70%;">${p.participant.name}</span>
+                            <span class="badge bg-dark fs-6 px-2 py-1">${p.goalsA} - ${p.goalsB}</span>
+                        </div>
+                    `).join('');
+                }
 
-                // Construimos el HTML final con las 3 columnas
                 lista.innerHTML = `
                     <div class="col-md-4">
-                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-primary">
-                            <h5 class="text-center fw-bold mb-3">Gana ${match.teamA} <br><small class="text-muted fw-normal">(${apuestasGanaA.length} apuestas)</small></h5>
+                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-success">
+                            <h5 class="text-center fw-bold mb-3 text-success">Gana ${match.teamA} <br><small class="text-muted fw-normal">(${apuestasGanaA.length} apuestas)</small></h5>
                             ${renderColumna(apuestasGanaA)}
                         </div>
                     </div>
                     
                     <div class="col-md-4">
                         <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-secondary">
-                            <h5 class="text-center fw-bold mb-3">Empate <br><small class="text-muted fw-normal">(${apuestasEmpate.length} apuestas)</small></h5>
+                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate <br><small class="text-muted fw-normal">(${apuestasEmpate.length} apuestas)</small></h5>
                             ${renderColumna(apuestasEmpate)}
                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-primary">
-                            <h5 class="text-center fw-bold mb-3">Gana ${match.teamB} <br><small class="text-muted fw-normal">(${apuestasGanaB.length} apuestas)</small></h5>
+                            <h5 class="text-center fw-bold mb-3 text-primary">Gana ${match.teamB} <br><small class="text-muted fw-normal">(${apuestasGanaB.length} apuestas)</small></h5>
                             ${renderColumna(apuestasGanaB)}
                         </div>
                     </div>
@@ -278,8 +182,7 @@
             }
         }
 
-        // Cargar el selector al iniciar
-        cargarListaPartidos();
+        window.onload = cargarListaPartidos;
     </script>
 </body>
 </html>

@@ -39,21 +39,23 @@
         </div>
     </nav>
 
-    <div class="container mt-4 mb-5" style="max-width: 800px;">
-        <h2 class="text-center mb-4">Resultados de los Partidos</h2>
+    <ul class="nav nav-tabs mb-4 justify-content-center" id="resultadosTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold" id="grupos-tab" data-bs-toggle="tab" data-bs-target="#grupos-pane" type="button" role="tab">⚽ Fase de Grupos</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link fw-bold" id="playoffs-tab" data-bs-toggle="tab" data-bs-target="#playoffs-pane" type="button" role="tab">🏆 Playoffs (Eliminatorias)</button>
+    </li>
+</ul>
 
-        <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#fecha1">Fecha 1</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#fecha2">Fecha 2</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#fecha3">Fecha 3</button></li>
-        </ul>
-
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="fecha1"><div class="row" id="lista-fecha1"></div></div>
-            <div class="tab-pane fade" id="fecha2"><div class="row" id="lista-fecha2"></div></div>
-            <div class="tab-pane fade" id="fecha3"><div class="row" id="lista-fecha3"></div></div>
-        </div>
+<div class="tab-content" id="resultadosTabsContent">
+    <div class="tab-pane fade show active" id="grupos-pane" role="tabpanel">
+        <div id="contenedor-grupos" class="row g-3"></div>
     </div>
+    <div class="tab-pane fade" id="playoffs-pane" role="tabpanel">
+        <div id="contenedor-resultados-playoffs" class="row g-3"></div>
+    </div>
+</div>
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
@@ -99,60 +101,49 @@
         verificarAdmin();
 
         async function cargarPartidos() {
-            try {
-                const response = await fetch(`${API_URL}/matches`);
-                const matches = await response.json();
-
-                matches.forEach((m, index) => {
-                    let contenedorId = 'lista-fecha1';
-                    
-                    // Mejora: Se intenta usar una propiedad de la API (round o fecha).
-                    // Si no existe, usamos la validación por índices (index) como respaldo.
-                    if (m.round === 2 || m.fecha === 2 || (index >= 24 && index < 48)) {
-                        contenedorId = 'lista-fecha2';
-                    } else if (m.round === 3 || m.fecha === 3 || index >= 48) {
-                        contenedorId = 'lista-fecha3';
-                    }
-
-                    const contenedor = document.getElementById(contenedorId);
-                    
-                    // Si por alguna razón el contenedor no existe, evitamos que el código se rompa
-                    if (!contenedor) return; 
-
-                    const col = document.createElement('div');
-                    col.className = 'col-12 mb-2';
-                    
-                    const valA = m.realGoalsA ?? '';
-                    const valB = m.realGoalsB ?? '';
-                    const jugado = valA !== '' && valB !== '';
-
-                    col.innerHTML = `
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body py-3">
-                                <div class="row align-items-center m-0">
-                                    <div class="col-4 text-end fw-bold fs-5 text-truncate" title="${m.teamA}">${m.teamA}</div>
-                                    
-                                    <div class="col-4 text-center">
-                                        ${jugado ? 
-                                            `<span class="badge bg-success fs-5 px-3 py-2 w-100 shadow-sm">${valA} - ${valB}</span>
-                                             <small class="text-success mt-1 d-block fw-bold" style="font-size: 0.75rem;">Finalizado</small>` 
-                                            : 
-                                            `<span class="badge bg-secondary fs-6 px-3 py-2 w-100 text-white-50">VS</span>
-                                             <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Por jugar</small>`
-                                        }
-                                    </div>
-                                    
-                                    <div class="col-4 text-start fw-bold fs-5 text-truncate" title="${m.teamB}">${m.teamB}</div>
+        try {
+            const res = await fetch(`${API_URL}/matches`);
+            const partidos = await res.json();
+            
+            const conGrupos = document.getElementById('contenedor-grupos');
+            const conPlayoffs = document.getElementById('contenedor-resultados-playoffs');
+            
+            conGrupos.innerHTML = '';
+            conPlayoffs.innerHTML = '';
+            
+            partidos.forEach(m => {
+                const jugado = m.realGoalsA !== null && m.realGoalsB !== null;
+                const col = document.createElement('div');
+                col.className = "col-md-6 col-lg-4";
+                col.innerHTML = `
+                    <div class="card shadow-sm mb-2">
+                        <div class="card-body py-3">
+                            <div class="text-muted small mb-1 text-center fw-bold text-uppercase">${m.group.length === 1 ? 'Grupo ' + m.group : m.group}</div>
+                            <div class="row align-items-center m-0">
+                                <div class="col-4 text-end fw-bold text-truncate" title="${m.teamA}">${m.teamA}</div>
+                                <div class="col-4 text-center px-1">
+                                    ${jugado ? 
+                                        `<span class="badge bg-success fs-5 px-2 py-2 w-100">${m.realGoalsA} - ${m.realGoalsB}</span>` : 
+                                        `<span class="badge bg-secondary fs-6 px-2 py-2 w-100 text-white-50">VS</span>`
+                                    }
                                 </div>
+                                <div class="col-4 text-start fw-bold text-truncate" title="${m.teamB}">${m.teamB}</div>
                             </div>
                         </div>
-                    `;
-                    contenedor.appendChild(col);
-                });
-            } catch (error) {
-                console.error("Error cargando partidos:", error);
-            }
+                    </div>
+                `;
+                
+                // Clasificación automática por longitud del campo 'group'
+                if (m.group && m.group.length > 1) {
+                    conPlayoffs.appendChild(col);
+                } else {
+                    conGrupos.appendChild(col);
+                }
+            });
+        } catch (error) {
+            console.error("Error:", error);
         }
+    }
         
         cargarPartidos();
     </script>

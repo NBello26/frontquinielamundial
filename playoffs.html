@@ -39,126 +39,103 @@
         </div>
     </nav>
 
-    <div class="container mt-4 mb-5" style="max-width: 800px;">
-        <h2 class="text-center mb-4">🏆 Fase Eliminatoria</h2>
-
-        <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
-            <a href="#fase-16avos" class="btn btn-outline-primary btn-sm rounded-pill">16avos</a>
-            <a href="#fase-Octavos" class="btn btn-outline-primary btn-sm rounded-pill">Octavos</a>
-            <a href="#fase-Cuartos" class="btn btn-outline-primary btn-sm rounded-pill">Cuartos</a>
-            <a href="#fase-Semifinal" class="btn btn-outline-primary btn-sm rounded-pill">Semifinal</a>
-            <a href="#fase-Final" class="btn btn-warning btn-sm rounded-pill fw-bold">Final</a>
-        </div>
-
-        <div id="contenedor-playoffs">
-            <div class="text-center text-muted"><div class="spinner-border spinner-border-sm text-primary"></div> Cargando cuadro...</div>
+    <div class="container my-4">
+    <h2 class="text-center mb-4">🏆 Cruces de Playoffs</h2>
+    
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-4">
+            <label for="select-fase" class="form-label fw-bold">Selecciona la Fase de Eliminación:</label>
+            <select id="select-fase" class="form-select shadow-sm" onchange="renderizarPlayoffs()">
+                <option value="todos">Mostrar Todo</option>
+                <option value="16avos" selected>16avos de Final</option>
+                <option value="Octavos">Octavos de Final</option>
+                <option value="Cuartos">Cuartos de Final</option>
+                <option value="Semifinal">Semifinales</option>
+                <option value="Final">Gran Final</option>
+            </select>
         </div>
     </div>
 
-    <script>
-        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
-        const ADMIN_PASSWORD = 'familia2026';
+    <div id="contenedor-playoffs"></div>
+</div>
 
-        function verificarAdmin() {
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.classList.toggle('d-none', !isAdmin);
-            });
-            const btnAuth = document.getElementById('btn-auth');
-            if(btnAuth) {
-                btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
-                btnAuth.className = isAdmin ? 'btn btn-outline-danger ms-3 btn-sm' : 'btn btn-outline-light ms-3 btn-sm';
-            }
+<script>
+    const API_URL = "http://localhost:8080/api"; // Ajusta a tu URL real
+    let todosLosPlayoffs = [];
+
+    async function cargarPlayoffs() {
+        try {
+            const res = await fetch(`${API_URL}/matches`);
+            const partidos = await res.json();
+            
+            // Filtramos únicamente los que pertenecen a Playoffs (longitud de grupo > 1)
+            todosLosPlayoffs = partidos.filter(m => m.group && m.group.length > 1);
+            
+            renderizarPlayoffs();
+        } catch (error) {
+            console.error("Error cargando playoffs:", error);
+            document.getElementById('contenedor-playoffs').innerHTML = '<div class="alert alert-danger text-center">Error al cargar los partidos de eliminatoria.</div>';
+        }
+    }
+
+    function renderizarPlayoffs() {
+        const contenedor = document.getElementById('contenedor-playoffs');
+        contenedor.innerHTML = ''; // <-- CRUCIAL: Limpia la pantalla antes de redibujar
+
+        const faseSeleccionada = document.getElementById('select-fase').value;
+        
+        // Filtrar según la opción del Select
+        const partidosFiltrados = faseSeleccionada === 'todos' 
+            ? todosLosPlayoffs 
+            : todosLosPlayoffs.filter(m => m.group.toLowerCase() === faseSeleccionada.toLowerCase());
+
+        if (partidosFiltrados.length === 0) {
+            contenedor.innerHTML = '<div class="alert alert-info text-center">No hay partidos registrados para esta fase aún.</div>';
+            return;
         }
 
-        function toggleAuth() {
-            if (localStorage.getItem('isAdmin') === 'true') {
-                localStorage.removeItem('isAdmin');
-                alert('Sesión cerrada');
-                window.location.reload();
-            } else {
-                const pass = prompt('Introduce la contraseña de administrador:');
-                if (pass === ADMIN_PASSWORD) {
-                    localStorage.setItem('isAdmin', 'true');
-                    alert('¡Sesión iniciada como administrador!');
-                    verificarAdmin();
-                }
-            }
-        }
+        // Agrupamos por fase para crear bloques visuales ordenados
+        const fasesAgrupadas = {};
+        partidosFiltrados.forEach(m => {
+            if (!fasesAgrupadas[m.group]) fasesAgrupadas[m.group] = [];
+            fasesAgrupadas[m.group].push(m);
+        });
 
-        verificarAdmin();
-
-        async function cargarPlayoffs() {
-            try {
-                const response = await fetch(`${API_URL}/matches`);
-                const matches = await response.json();
-
-                // Filtramos SOLO los partidos que son de playoffs (grupo con nombre largo)
-                const playoffMatches = matches.filter(m => m.group && m.group.length > 1);
-                
-                const contenedor = document.getElementById('contenedor-playoffs');
-                contenedor.innerHTML = '';
-
-                if(playoffMatches.length === 0) {
-                    contenedor.innerHTML = '<div class="alert alert-info text-center">Aún no se han definido los cruces de eliminatorias.</div>';
-                    return;
-                }
-
-                // Agrupamos por fase
-                const fases = ["16avos", "Octavos", "Cuartos", "Semifinal", "Tercer Puesto", "Final"];
-                
-                fases.forEach(fase => {
-                    const partidosFase = playoffMatches.filter(m => m.group === fase);
-                    
-                    if(partidosFase.length > 0) {
-                        const seccionFase = document.createElement('div');
-                        seccionFase.id = `fase-${fase.replace(' ', '')}`;
-                        seccionFase.className = 'mb-5';
-                        
-                        let tituloClass = 'bg-dark';
-                        if(fase === 'Final') tituloClass = 'bg-warning text-dark';
-                        
-                        seccionFase.innerHTML = `<h4 class="text-center text-white py-2 rounded shadow-sm mb-3 ${tituloClass} fw-bold">${fase.toUpperCase()}</h4>`;
-                        
-                        const row = document.createElement('div');
-                        row.className = 'row g-3';
-                        
-                        partidosFase.forEach(m => {
-                            const valA = m.realGoalsA ?? '';
-                            const valB = m.realGoalsB ?? '';
-                            const jugado = valA !== '' && valB !== '';
-                            
-                            row.innerHTML += `
-                                <div class="col-md-6">
-                                    <div class="card shadow-sm border-0 h-100">
-                                        <div class="card-body p-3 text-center">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <div class="fw-bold fs-5 text-truncate w-100 text-end pe-2">${m.teamA}</div>
-                                                <div class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-5 px-3 py-1 shadow-sm mx-1">
-                                                    ${jugado ? `${valA} - ${valB}` : 'VS'}
-                                                </div>
-                                                <div class="fw-bold fs-5 text-truncate w-100 text-start ps-2">${m.teamB}</div>
-                                            </div>
-                                            <small class="${jugado ? 'text-success fw-bold' : 'text-muted'}">
-                                                ${jugado ? 'Finalizado' : 'Por Jugar'}
-                                            </small>
-                                        </div>
-                                    </div>
+        // Dibujar en el DOM
+        for (const fase in fasesAgrupadas) {
+            const seccionFase = document.createElement('div');
+            seccionFase.className = "mb-5";
+            seccionFase.innerHTML = `<h3 class="border-bottom pb-2 text-primary text-uppercase font-monospace fs-4">${fase}</h3>`;
+            
+            const row = document.createElement('div');
+            row.className = "row g-3";
+            
+            fasesAgrupadas[fase].forEach(m => {
+                const jugado = m.realGoalsA !== null && m.realGoalsB !== null;
+                const col = document.createElement('div');
+                col.className = "col-md-6 col-lg-4";
+                col.innerHTML = `
+                    <div class="card shadow-sm border-light">
+                        <div class="card-body text-center">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="fw-bold text-truncate w-100 text-end pe-2" style="max-width:40%;">${m.teamA}</div>
+                                <div class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-5 px-3 py-1 mx-1">
+                                    ${jugado ? `${m.realGoalsA} - ${m.realGoalsB}` : 'VS'}
                                 </div>
-                            `;
-                        });
-                        seccionFase.appendChild(row);
-                        contenedor.appendChild(seccionFase);
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error cargando playoffs:", error);
-                document.getElementById('contenedor-playoffs').innerHTML = '<div class="alert alert-danger text-center">Error al cargar los partidos de eliminatoria.</div>';
-            }
+                                <div class="fw-bold text-truncate w-100 text-start ps-2" style="max-width:40%;">${m.teamB}</div>
+                            </div>
+                            <small class="${jugado ? 'text-success fw-bold' : 'text-muted'} d-block mt-2">
+                                ${jugado ? '✓ Finalizado' : '⏳ Por Jugar'}
+                            </small>
+                        </div>
+                    </div>
+                `;
+                row.appendChild(col);
+            });
+            seccionFase.appendChild(row);
+            contenedor.appendChild(seccionFase);
         }
+    }
 
-        cargarPlayoffs();
-    </script>
-</body>
-</html>
+    cargarPlayoffs();
+</script>
