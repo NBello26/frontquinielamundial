@@ -29,6 +29,7 @@
                     <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
                     <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    
                     <li class="nav-item"><a class="nav-link active" href="predicciones.html">Predicciones</a></li>
                     
                     <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
@@ -41,55 +42,120 @@
     </nav>
 
     <div class="container my-4">
-        <h2 class="text-center mb-4">🔍 Predicciones por Familiar</h2>
+        <h2 class="text-center mb-4">🔮 Análisis de Predicciones</h2>
         
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-6">
-                <select id="select-participante" class="form-select shadow-sm" onchange="cargarPredicciones()">
-                    <option value="">-- Elige un Participante --</option>
-                </select>
-            </div>
-        </div>
-
-        <ul class="nav nav-pills mb-4 justify-content-center" id="prediccionesTabs" role="tablist">
+        <ul class="nav nav-tabs justify-content-center mb-4" id="modoVistaTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-bold px-4" id="p-grupos-tab" data-bs-toggle="tab" data-bs-target="#p-grupos" type="button" role="tab">⚽ Fase de Grupos</button>
+                <button class="nav-link active fw-bold px-4 fs-5 text-primary" id="modo-familiar-tab" data-bs-toggle="tab" data-bs-target="#modo-familiar" type="button" role="tab">👤 Ver por Familiar</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold px-4" id="p-playoffs-tab" data-bs-toggle="tab" data-bs-target="#p-playoffs" type="button" role="tab">🏆 Playoffs</button>
+                <button class="nav-link fw-bold px-4 fs-5 text-success" id="modo-partido-tab" data-bs-toggle="tab" data-bs-target="#modo-partido" type="button" role="tab">⚽ Ver por Partido</button>
             </li>
         </ul>
 
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="p-grupos" role="tabpanel">
-                <div id="contenedor-predicciones-grupos" class="row"></div>
+        <div class="tab-content border-start border-end border-bottom bg-white p-4 rounded-bottom shadow-sm">
+            
+            <div class="tab-pane fade show active" id="modo-familiar" role="tabpanel">
+                
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary small">Selecciona un Participante:</label>
+                        <select id="select-participante" class="form-select border-primary shadow-sm" onchange="cargarPrediccionesParticipante()">
+                            <option value="">-- Elige un Participante --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <ul class="nav nav-pills mb-4 justify-content-center" id="fasesFamiliarTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold px-4" id="p-grupos-tab" data-bs-toggle="tab" data-bs-target="#p-grupos" type="button" role="tab">📊 Fase de Grupos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-4" id="p-playoffs-tab" data-bs-toggle="tab" data-bs-target="#p-playoffs" type="button" role="tab">🏆 Playoffs</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="p-grupos" role="tabpanel">
+                        <div id="contenedor-predicciones-grupos" class="row">
+                            <div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="p-playoffs" role="tabpanel">
+                        <div id="contenedor-predicciones-playoffs" class="row">
+                            <div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="tab-pane fade" id="p-playoffs" role="tabpanel">
-                <div id="contenedor-predicciones-playoffs" class="row"></div>
+
+            <div class="tab-pane fade" id="modo-partido" role="tabpanel">
+                
+                <div class="row justify-content-center mb-4 g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-secondary small">1. Filtrar por Etapa:</label>
+                        <select id="filtro-etapa-partido" class="form-select shadow-sm" onchange="actualizarDropdownPartidos()">
+                            <option value="todos">Mostrar Todas</option>
+                            <option value="grupos">Solo Fase de Grupos</option>
+                            <option value="16avos">16avos de Final</option>
+                            <option value="octavos">Octavos de Final</option>
+                            <option value="cuartos">Cuartos de Final</option>
+                            <option value="semifinal">Semifinales</option>
+                            <option value="tercer">Tercer Puesto</option>
+                            <option value="final">Gran Final</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary small">2. Selecciona el Partido a Analizar:</label>
+                        <select id="select-partido" class="form-select border-success shadow-sm" onchange="cargarDetallesPartido()">
+                            <option value="">-- Elige un Partido --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="cabecera-partido" class="mb-4"></div>
+                <div class="row g-3" id="lista-predicciones-partido">
+                    <div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para ver las tendencias.</div>
+                </div>
+
             </div>
+            
         </div>
     </div>
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
-        let listaParticipantesGlobal = []; // Guarda la copia local para cambiar los puntos dinámicamente
+        let listaParticipantesGlobal = [];
+        let listaPartidosGlobal = [];
 
-        // 1. CARGA INICIAL DE PARTICIPANTES
-        async function cargarListaParticipantes() {
+        // ==========================================
+        // 1. INICIALIZACIÓN GLOBAL
+        // ==========================================
+        async function inicializarPagina() {
             try {
-                const res = await fetch(`${API_URL}/participants`);
-                listaParticipantesGlobal = await res.json();
-                actualizarSelectorPuntajes();
+                // Descargar Participantes
+                const resPart = await fetch(`${API_URL}/participants`);
+                listaParticipantesGlobal = await resPart.json();
+                
+                // Descargar Partidos (para el dropdown de "Por Partido")
+                const resMatch = await fetch(`${API_URL}/matches`);
+                listaPartidosGlobal = await resMatch.json();
+
+                // Llenar datos en pantalla
+                actualizarSelectorPuntajesFamiliar();
+                actualizarDropdownPartidos(); // Llena el selector de partidos por defecto
             } catch (error) {
-                console.error("Error cargando participantes:", error);
+                console.error("Error al inicializar datos:", error);
             }
         }
 
-        // 2. ACTUALIZAR PUNTOS DINÁMICOS EN EL SELECTOR SEGÚN LA PESTAÑA ACTIVA
-        function actualizarSelectorPuntajes() {
+        // ==========================================
+        // 2. LÓGICA: VISTA POR FAMILIAR
+        // ==========================================
+        function actualizarSelectorPuntajesFamiliar() {
             const select = document.getElementById('select-participante');
-            const valorSeleccionado = select.value; // Guardamos la selección actual para que no se pierda al redibujar
-            
+            const valorSeleccionado = select.value;
             const tabGruposActiva = document.getElementById('p-grupos-tab').classList.contains('active');
             
             select.innerHTML = '<option value="">-- Elige un Participante --</option>';
@@ -104,28 +170,26 @@
                 }
                 select.appendChild(opt);
             });
-            
-            select.value = valorSeleccionado; // Restauramos el participante que estaba mirando el usuario
+            select.value = valorSeleccionado;
         }
 
-        // Detectar el cambio de pestaña para actualizar los puntajes de la barra de búsqueda inmediatamente
-        document.getElementById('p-grupos-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajes);
-        document.getElementById('p-playoffs-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajes);
+        // Eventos para que se actualicen los puntos al cambiar pestaña de fase
+        document.getElementById('p-grupos-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajesFamiliar);
+        document.getElementById('p-playoffs-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajesFamiliar);
 
-        // 3. CARGAR PREDICCIONES Y AGRUPARLAS VISUALMENTE
-        async function cargarPredicciones() {
+        async function cargarPrediccionesParticipante() {
             const id = document.getElementById('select-participante').value;
             const conGrupos = document.getElementById('contenedor-predicciones-grupos');
             const conPlayoffs = document.getElementById('contenedor-predicciones-playoffs');
             
             if (!id) {
-                conGrupos.innerHTML = '';
-                conPlayoffs.innerHTML = '';
+                conGrupos.innerHTML = '<div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>';
+                conPlayoffs.innerHTML = '<div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>';
                 return;
             }
 
-            conGrupos.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones de grupos...</div>';
-            conPlayoffs.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones de playoffs...</div>';
+            conGrupos.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones...</div>';
+            conPlayoffs.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones...</div>';
 
             try {
                 const res = await fetch(`${API_URL}/participants/${id}`);
@@ -134,54 +198,45 @@
                 conGrupos.innerHTML = '';
                 conPlayoffs.innerHTML = '';
 
-                // Mapas de almacenamiento para agrupar partidos
-                const gruposMap = {};   // { "A": [pred, pred], "B": [...] }
-                const playoffsMap = {}; // { "Octavos de Final": [...], "Cuartos de Final": [...] }
+                const gruposMap = {};   
+                const playoffsMap = {}; 
 
                 participant.predictions.forEach(pred => {
                     const match = pred.match;
                     const grupoStr = match.group || "";
 
                     if (grupoStr.length > 1) {
-                        // Es una etapa de playoffs (ej: "Octavos de Final")
                         if (!playoffsMap[grupoStr]) playoffsMap[grupoStr] = [];
                         playoffsMap[grupoStr].push(pred);
                     } else {
-                        // Es un grupo (ej: "A", "B")
                         if (!gruposMap[grupoStr]) gruposMap[grupoStr] = [];
                         gruposMap[grupoStr].push(pred);
                     }
                 });
 
-                // --- RENDERIZAR FASE DE GRUPOS ---
+                // Render Grupos
                 const listaGrupos = Object.keys(gruposMap).sort();
                 if (listaGrupos.length === 0) {
-                    conGrupos.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones registradas para Fase de Grupos.</div>';
+                    conGrupos.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones para Fase de Grupos.</div>';
                 } else {
                     listaGrupos.forEach(g => {
-                        const seccionGrupo = document.createElement('div');
-                        seccionGrupo.className = "col-12 mb-4";
-                        seccionGrupo.innerHTML = `<h4 class="border-bottom pb-2 mb-3 text-primary fw-bold">📊 Grupo ${g}</h4>`;
-                        
-                        const filaTarjetas = document.createElement('div');
-                        filaTarjetas.className = "row g-3";
-
-                        gruposMap[g].forEach(pred => {
-                            filaTarjetas.appendChild(crearTarjetaPrediccion(pred));
-                        });
-
-                        seccionGrupo.appendChild(filaTarjetas);
-                        conGrupos.appendChild(seccionGrupo);
+                        const seccion = document.createElement('div');
+                        seccion.className = "col-12 mb-4";
+                        seccion.innerHTML = `<h4 class="border-bottom pb-2 mb-3 text-primary fw-bold">📊 Grupo ${g}</h4>`;
+                        const fila = document.createElement('div');
+                        fila.className = "row g-3";
+                        gruposMap[g].forEach(pred => fila.appendChild(crearTarjetaFamiliar(pred)));
+                        seccion.appendChild(fila);
+                        conGrupos.appendChild(seccion);
                     });
                 }
 
-                // --- RENDERIZAR PLAYOFFS ---
+                // Render Playoffs
                 const listaPlayoffs = Object.keys(playoffsMap);
                 if (listaPlayoffs.length === 0) {
-                    conPlayoffs.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones registradas para Playoffs aún.</div>';
+                    conPlayoffs.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones para Playoffs.</div>';
                 } else {
-                    // Orden de jerarquía para las etapas eliminatorias
-                    const ordenEtapas = ["OCTAVOS", "CUARTOS", "SEMIFINAL", "TERCER", "FINAL"];
+                    const ordenEtapas = ["16AVOS", "OCTAVOS", "CUARTOS", "SEMIFINAL", "TERCER", "FINAL"];
                     listaPlayoffs.sort((a, b) => {
                         const idxA = ordenEtapas.findIndex(e => a.toUpperCase().includes(e));
                         const idxB = ordenEtapas.findIndex(e => b.toUpperCase().includes(e));
@@ -189,68 +244,50 @@
                     });
 
                     listaPlayoffs.forEach(p => {
-                        const seccionPlayoff = document.createElement('div');
-                        seccionPlayoff.className = "col-12 mb-4";
-                        seccionPlayoff.innerHTML = `<h4 class="border-bottom pb-2 mb-3 text-success fw-bold">🏆 ${p}</h4>`;
-                        
-                        const filaTarjetas = document.createElement('div');
-                        filaTarjetas.className = "row g-3";
-
-                        playoffsMap[p].forEach(pred => {
-                            filaTarjetas.appendChild(crearTarjetaPrediccion(pred));
-                        });
-
-                        seccionPlayoff.appendChild(filaTarjetas);
-                        conPlayoffs.appendChild(seccionPlayoff);
+                        const seccion = document.createElement('div');
+                        seccion.className = "col-12 mb-4";
+                        seccion.innerHTML = `<h4 class="border-bottom pb-2 mb-3 text-success fw-bold">🏆 ${p}</h4>`;
+                        const fila = document.createElement('div');
+                        fila.className = "row g-3";
+                        playoffsMap[p].forEach(pred => fila.appendChild(crearTarjetaFamiliar(pred)));
+                        seccion.appendChild(fila);
+                        conPlayoffs.appendChild(seccion);
                     });
                 }
-
             } catch (error) {
-                console.error("Error cargando predicciones:", error);
-                conGrupos.innerHTML = '<div class="alert alert-danger text-center">Error al conectar con el servidor.</div>';
-                conPlayoffs.innerHTML = '<div class="alert alert-danger text-center">Error al conectar con el servidor.</div>';
+                console.error(error);
+                conGrupos.innerHTML = '<div class="alert alert-danger text-center">Error de conexión.</div>';
             }
         }
 
-        // AUXILIAR: CREA EL CUADRO INDIVIDUAL DE CADA PARTIDO CON SUS COLORES Y DETALLES
-        function crearTarjetaPrediccion(pred) {
+        function crearTarjetaFamiliar(pred) {
             const match = pred.match;
             const realJugado = match.realGoalsA !== null && match.realGoalsB !== null;
-
-            let colorBorde = "border-light";
-            let badgeClass = "bg-secondary";
-            let puntosHTML = "";
+            let colorBorde = "border-light", badgeClass = "bg-secondary", puntosHTML = "";
 
             if (realJugado) {
-                const predEmpate = pred.goalsA === pred.goalsB;
-                const realEmpate = match.realGoalsA === match.realGoalsB;
-                const predGanaA = pred.goalsA > pred.goalsB;
-                const realGanaA = match.realGoalsA > match.realGoalsB;
-                const predGanaB = pred.goalsA < pred.goalsB;
-                const realGanaB = match.realGoalsA < match.realGoalsB;
+                const predEmpate = pred.goalsA === pred.goalsB, realEmpate = match.realGoalsA === match.realGoalsB;
+                const predGanaA = pred.goalsA > pred.goalsB, realGanaA = match.realGoalsA > match.realGoalsB;
+                const predGanaB = pred.goalsA < pred.goalsB, realGanaB = match.realGoalsA < match.realGoalsB;
 
                 if (pred.goalsA === match.realGoalsA && pred.goalsB === match.realGoalsB) {
-                    colorBorde = "border-success border-2"; 
-                    badgeClass = "bg-success";
-                    puntosHTML = `<span class="badge bg-success d-block mt-1">Exacto (+3 pts)</span>`;
+                    colorBorde = "border-success border-2"; badgeClass = "bg-success";
+                    puntosHTML = `<span class="badge bg-success d-block mt-1 shadow-sm">+5 pts (Exacto)</span>`;
                 } else if ((predEmpate && realEmpate) || (predGanaA && realGanaA) || (predGanaB && realGanaB)) {
-                    colorBorde = "border-warning border-2"; 
-                    badgeClass = "bg-warning text-dark";
-                    puntosHTML = `<span class="badge bg-warning text-dark d-block mt-1">Ganador (+1 pt)</span>`;
+                    colorBorde = "border-warning border-2"; badgeClass = "bg-warning text-dark";
+                    puntosHTML = `<span class="badge bg-warning text-dark d-block mt-1 shadow-sm">+3 pts (Ganador)</span>`;
                 } else {
-                    colorBorde = "border-danger border-2"; 
-                    badgeClass = "bg-danger";
-                    puntosHTML = `<span class="badge bg-danger d-block mt-1">0 pts</span>`;
+                    colorBorde = "border-danger border-2"; badgeClass = "bg-danger";
+                    puntosHTML = `<span class="badge bg-danger d-block mt-1 shadow-sm">0 pts</span>`;
                 }
             }
 
             const textoReal = realJugado ? `Real: ${match.realGoalsA} - ${match.realGoalsB}` : "⏳ Sin jugar";
-
             const col = document.createElement('div');
             col.className = "col-md-6 col-lg-4";
             col.innerHTML = `
                 <div class="card h-100 shadow-sm ${colorBorde}">
-                    <div class="card-body py-3 d-flex flex-column justify-content-between">
+                    <div class="card-body py-3 d-flex flex-column justify-content-center">
                         <div class="row align-items-center m-0 w-100">
                             <div class="col-4 text-end fw-bold text-truncate px-1" title="${match.teamA}">${match.teamA}</div>
                             <div class="col-4 text-center px-0">
@@ -266,7 +303,143 @@
             return col;
         }
 
-        // 4. LÓGICA DE CONTROL DEL NAVBAR (SEGURIDAD Y LOGIN ADMINISTRADOR)
+
+        // ==========================================
+        // 3. LÓGICA: VISTA POR PARTIDO
+        // ==========================================
+        function actualizarDropdownPartidos() {
+            const filtro = document.getElementById('filtro-etapa-partido').value.toLowerCase();
+            const selectElement = document.getElementById('select-partido');
+            
+            selectElement.innerHTML = '<option value="">-- Elige un Partido --</option>';
+            
+            const grupoFaseGrupos = document.createElement('optgroup');
+            grupoFaseGrupos.label = "⚽ Fase de Grupos";
+            
+            const grupoPlayoffs = document.createElement('optgroup');
+            grupoPlayoffs.label = "🏆 Playoffs";
+
+            listaPartidosGlobal.forEach(m => {
+                const grupoStr = m.group || "";
+                const esGrupo = grupoStr.length <= 1;
+                const esPlayoff = grupoStr.length > 1;
+                
+                let coincide = false;
+                if (filtro === 'todos') coincide = true;
+                else if (filtro === 'grupos' && esGrupo) coincide = true;
+                else if (esPlayoff && grupoStr.toLowerCase().includes(filtro)) coincide = true;
+
+                if (coincide) {
+                    const option = document.createElement('option');
+                    option.value = m.id;
+                    
+                    if (esPlayoff) {
+                        option.textContent = `[${grupoStr}] ${m.teamA} vs ${m.teamB}`;
+                        grupoPlayoffs.appendChild(option);
+                    } else {
+                        option.textContent = `[Grupo ${grupoStr}] ${m.teamA} vs ${m.teamB}`;
+                        grupoFaseGrupos.appendChild(option);
+                    }
+                }
+            });
+
+            if (grupoFaseGrupos.children.length > 0) selectElement.appendChild(grupoFaseGrupos);
+            if (grupoPlayoffs.children.length > 0) selectElement.appendChild(grupoPlayoffs);
+            
+            // Limpiar la vista
+            document.getElementById('cabecera-partido').innerHTML = '';
+            document.getElementById('lista-predicciones-partido').innerHTML = '<div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para ver las tendencias.</div>';
+        }
+
+        async function cargarDetallesPartido() {
+            const matchId = document.getElementById('select-partido').value;
+            const cabecera = document.getElementById('cabecera-partido');
+            const lista = document.getElementById('lista-predicciones-partido');
+
+            if (!matchId) {
+                cabecera.innerHTML = '';
+                lista.innerHTML = '<div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para ver las tendencias.</div>';
+                return;
+            }
+
+            lista.innerHTML = '<div class="text-center py-5">⏳ Compilando apuestas de todos los familiares...</div>';
+
+            try {
+                const res = await fetch(`${API_URL}/matches/${matchId}/predictions`);
+                const data = await res.json();
+                const match = data.match;
+                const predictions = data.predictions;
+                
+                const jugado = match.realGoalsA !== null && match.realGoalsB !== null;
+                const grupoStr = match.group || "";
+
+                // Header
+                cabecera.innerHTML = `
+                    <div class="card bg-dark text-white shadow-sm border-0">
+                        <div class="card-body text-center py-3">
+                            <div class="small text-warning text-uppercase fw-bold mb-1">${grupoStr.length <= 1 ? 'Fase de Grupos - Grupo ' + grupoStr : 'Fase Final - ' + grupoStr}</div>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <h3 class="mb-0 fw-bold px-3 text-truncate" style="max-width:35%;">${match.teamA}</h3>
+                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-4 mx-2 px-3 shadow-sm">${jugado ? match.realGoalsA + ' - ' + match.realGoalsB : 'VS'}</span>
+                                <h3 class="mb-0 fw-bold px-3 text-truncate" style="max-width:35%;">${match.teamB}</h3>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if(predictions.length === 0) {
+                     lista.innerHTML = '<div class="col-12"><div class="alert alert-info text-center">Nadie ha apostado en este partido todavía.</div></div>';
+                     return;
+                }
+
+                // Separar tendencias (Gana A, Empate, Gana B)
+                const apuestasGanaA = [], apuestasEmpate = [], apuestasGanaB = [];
+                predictions.forEach(p => {
+                    if (p.goalsA > p.goalsB) apuestasGanaA.push(p);
+                    else if (p.goalsA < p.goalsB) apuestasGanaB.push(p);
+                    else apuestasEmpate.push(p);
+                });
+
+                function renderColumna(arreglo) {
+                    if (arreglo.length === 0) return '<p class="text-center text-muted small my-3">Ninguna apuesta.</p>';
+                    return arreglo.map(p => `
+                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-light rounded mb-2">
+                            <span class="text-capitalize small fw-bold text-truncate me-2">${p.participant.name}</span>
+                            <span class="badge bg-dark fs-6 px-2 py-1">${p.goalsA} - ${p.goalsB}</span>
+                        </div>
+                    `).join('');
+                }
+
+                lista.innerHTML = `
+                    <div class="col-md-4">
+                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-success">
+                            <h5 class="text-center fw-bold mb-3 text-success text-truncate" title="Gana ${match.teamA}">Gana ${match.teamA} <br><small class="text-muted fw-normal">(${apuestasGanaA.length} apuestas)</small></h5>
+                            ${renderColumna(apuestasGanaA)}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-secondary">
+                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate <br><small class="text-muted fw-normal">(${apuestasEmpate.length} apuestas)</small></h5>
+                            ${renderColumna(apuestasEmpate)}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-primary">
+                            <h5 class="text-center fw-bold mb-3 text-primary text-truncate" title="Gana ${match.teamB}">Gana ${match.teamB} <br><small class="text-muted fw-normal">(${apuestasGanaB.length} apuestas)</small></h5>
+                            ${renderColumna(apuestasGanaB)}
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Error:", error);
+                lista.innerHTML = '<div class="alert alert-danger text-center w-100">Error al cargar datos.</div>';
+            }
+        }
+
+        // ==========================================
+        // 4. SEGURIDAD Y NAVBAR
+        // ==========================================
         function checkAdmin() {
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
             document.querySelectorAll('.admin-only').forEach(el => {
@@ -294,7 +467,7 @@
                 window.location.reload();
             } else {
                 const pass = prompt('Ingresa la contraseña de administrador:');
-                if (pass === 'familia2026') { // Reemplaza por tu clave preferida
+                if (pass === 'admin123') { // CONTRASEÑA
                     localStorage.setItem('isAdmin', 'true');
                     alert('¡Sesión iniciada con éxito!');
                     window.location.reload();
@@ -304,10 +477,10 @@
             }
         }
 
-        // Encendido maestro al cargar el documento
+        // Encendido al cargar la ventana
         window.onload = function() {
             checkAdmin();
-            cargarListaParticipantes();
+            inicializarPagina();
         };
     </script>
 </body>
