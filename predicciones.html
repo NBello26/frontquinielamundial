@@ -5,12 +5,29 @@
     <title>Quiniela Mundial - Predicciones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Estilos para embellecer la interfaz */
+        .banner-perfil {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            border-radius: 1rem;
+        }
+        .tarjeta-pred {
+            transition: transform 0.2s;
+        }
+        .tarjeta-pred:hover {
+            transform: translateY(-5px);
+        }
+        .nav-pills .nav-link.active {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body class="bg-light">
     
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+            <a class="navbar-brand fw-bold" href="index.html">⚽ Quiniela Mundial</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -21,7 +38,7 @@
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Posiciones
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu shadow-sm border-0">
                             <li><a class="dropdown-item" href="index.html">Tabla General</a></li>
                             <li><a class="dropdown-item fw-bold text-primary" href="posiciones-playoffs.html">Tabla Playoffs 🏆</a></li>
                         </ul>
@@ -29,11 +46,10 @@
                     <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
                     <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-                    
-                    <li class="nav-item"><a class="nav-link active" href="predicciones.html">Predicciones</a></li>
+                    <li class="nav-item"><a class="nav-link active fw-bold" href="predicciones.html">Predicciones</a></li>
                     
                     <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
-                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm shadow-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
                     
                     <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
@@ -42,48 +58,60 @@
     </nav>
 
     <div class="container my-4">
-        <h2 class="text-center mb-4">🔮 Análisis de Predicciones</h2>
+        <h2 class="text-center mb-4 fw-bold text-dark">🔮 Análisis de Predicciones</h2>
         
-        <ul class="nav nav-tabs justify-content-center mb-4" id="modoVistaTabs" role="tablist">
+        <ul class="nav nav-tabs justify-content-center mb-4 border-0" id="modoVistaTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-bold px-4 fs-5 text-primary" id="modo-familiar-tab" data-bs-toggle="tab" data-bs-target="#modo-familiar" type="button" role="tab">👤 Ver por Familiar</button>
+                <button class="nav-link active fw-bold px-4 fs-5 text-primary border-0 rounded-top" id="modo-familiar-tab" data-bs-toggle="tab" data-bs-target="#modo-familiar" type="button" role="tab">👤 Por Familiar</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold px-4 fs-5 text-success" id="modo-partido-tab" data-bs-toggle="tab" data-bs-target="#modo-partido" type="button" role="tab">⚽ Ver por Partido</button>
+                <button class="nav-link fw-bold px-4 fs-5 text-success border-0 rounded-top" id="modo-partido-tab" data-bs-toggle="tab" data-bs-target="#modo-partido" type="button" role="tab">⚽ Por Partido</button>
             </li>
         </ul>
 
-        <div class="tab-content border-start border-end border-bottom bg-white p-4 rounded-bottom shadow-sm">
+        <div class="tab-content bg-white p-4 rounded-4 shadow-sm">
             
             <div class="tab-pane fade show active" id="modo-familiar" role="tabpanel">
                 
                 <div class="row justify-content-center mb-4">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold text-secondary small">Selecciona un Participante:</label>
-                        <select id="select-participante" class="form-select border-primary shadow-sm" onchange="cargarPrediccionesParticipante()">
+                        <label class="form-label fw-bold text-secondary">🔍 Selecciona un Participante:</label>
+                        <select id="select-participante" class="form-select form-select-lg border-primary shadow-sm" onchange="cargarPrediccionesParticipante()">
                             <option value="">-- Elige un Participante --</option>
                         </select>
                     </div>
                 </div>
 
+                <div id="banner-estadisticas" class="row justify-content-center mb-5 d-none">
+                    <div class="col-md-8 text-center">
+                        <div class="banner-perfil shadow p-3">
+                            <h3 class="fw-bold mb-2 text-capitalize" id="banner-nombre">Nombre</h3>
+                            <div class="d-flex justify-content-center gap-3">
+                                <span class="badge bg-light text-primary fs-5 shadow-sm">📊 Grupos: <span id="banner-pts-grupos">0</span> pts</span>
+                                <span class="badge bg-warning text-dark fs-5 shadow-sm">🏆 Playoffs: <span id="banner-pts-playoffs">0</span> pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <ul class="nav nav-pills mb-4 justify-content-center" id="fasesFamiliarTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold px-4" id="p-grupos-tab" data-bs-toggle="tab" data-bs-target="#p-grupos" type="button" role="tab">📊 Fase de Grupos</button>
+                        <button class="nav-link active fw-bold px-4 rounded-pill" id="p-grupos-tab" data-bs-toggle="tab" data-bs-target="#p-grupos" type="button" role="tab">📊 Fase de Grupos</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold px-4" id="p-playoffs-tab" data-bs-toggle="tab" data-bs-target="#p-playoffs" type="button" role="tab">🏆 Playoffs</button>
+                        <button class="nav-link fw-bold px-4 rounded-pill" id="p-playoffs-tab" data-bs-toggle="tab" data-bs-target="#p-playoffs" type="button" role="tab">🏆 Playoffs</button>
                     </li>
                 </ul>
 
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="p-grupos" role="tabpanel">
                         <div id="contenedor-predicciones-grupos" class="row">
-                            <div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>
+                            <div class="text-center text-muted py-4 fs-5">👆 Seleccione un familiar arriba para ver sus resultados.</div>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="p-playoffs" role="tabpanel">
                         <div id="contenedor-predicciones-playoffs" class="row">
-                            <div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>
+                            <div class="text-center text-muted py-4 fs-5">👆 Seleccione un familiar arriba para ver sus resultados.</div>
                         </div>
                     </div>
                 </div>
@@ -94,7 +122,7 @@
                 
                 <div class="row justify-content-center mb-4 g-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-secondary small">1. Filtrar por Etapa:</label>
+                        <label class="form-label fw-bold text-secondary">1. Filtrar por Etapa:</label>
                         <select id="filtro-etapa-partido" class="form-select shadow-sm" onchange="actualizarDropdownPartidos()">
                             <option value="todos">Mostrar Todas</option>
                             <option value="grupos">Solo Fase de Grupos</option>
@@ -107,7 +135,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold text-secondary small">2. Selecciona el Partido a Analizar:</label>
+                        <label class="form-label fw-bold text-secondary">2. Selecciona el Partido a Analizar:</label>
                         <select id="select-partido" class="form-select border-success shadow-sm" onchange="cargarDetallesPartido()">
                             <option value="">-- Elige un Partido --</option>
                         </select>
@@ -116,7 +144,7 @@
 
                 <div id="cabecera-partido" class="mb-4"></div>
                 <div class="row g-3" id="lista-predicciones-partido">
-                    <div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para ver las tendencias.</div>
+                    <div class="text-center text-muted py-5 fs-5">👆 Selecciona un encuentro deportivo arriba para ver las tendencias.</div>
                 </div>
 
             </div>
@@ -126,25 +154,40 @@
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
-        let listaParticipantesGlobal = [];
         let listaPartidosGlobal = [];
+
+        // Función centralizada para calcular puntos (Usada en ambas vistas)
+        function calcularPuntosLocal(predA, predB, realA, realB) {
+            if (realA === null || realB === null) return 0;
+            if (predA === realA && predB === realB) return 5;
+            const predEmpate = predA === predB, realEmpate = realA === realB;
+            const predGanaA = predA > predB, realGanaA = realA > realB;
+            const predGanaB = predA < predB, realGanaB = realA < realB;
+            if ((predEmpate && realEmpate) || (predGanaA && realGanaA) || (predGanaB && realGanaB)) return 3;
+            return 0;
+        }
 
         // ==========================================
         // 1. INICIALIZACIÓN GLOBAL
         // ==========================================
         async function inicializarPagina() {
             try {
-                // Descargar Participantes
+                // Descargar Participantes solo para llenar los nombres
                 const resPart = await fetch(`${API_URL}/participants`);
-                listaParticipantesGlobal = await resPart.json();
+                const participantes = await resPart.json();
                 
-                // Descargar Partidos (para el dropdown de "Por Partido")
+                const select = document.getElementById('select-participante');
+                participantes.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.name;
+                    select.appendChild(opt);
+                });
+                
+                // Descargar Partidos
                 const resMatch = await fetch(`${API_URL}/matches`);
                 listaPartidosGlobal = await resMatch.json();
-
-                // Llenar datos en pantalla
-                actualizarSelectorPuntajesFamiliar();
-                actualizarDropdownPartidos(); // Llena el selector de partidos por defecto
+                actualizarDropdownPartidos();
             } catch (error) {
                 console.error("Error al inicializar datos:", error);
             }
@@ -153,43 +196,22 @@
         // ==========================================
         // 2. LÓGICA: VISTA POR FAMILIAR
         // ==========================================
-        function actualizarSelectorPuntajesFamiliar() {
-            const select = document.getElementById('select-participante');
-            const valorSeleccionado = select.value;
-            const tabGruposActiva = document.getElementById('p-grupos-tab').classList.contains('active');
-            
-            select.innerHTML = '<option value="">-- Elige un Participante --</option>';
-            
-            listaParticipantesGlobal.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                if (tabGruposActiva) {
-                    opt.textContent = `${p.name} (${p.totalPoints || 0} pts en Grupos)`;
-                } else {
-                    opt.textContent = `${p.name} (${p.playoffPoints || 0} pts en Playoffs)`;
-                }
-                select.appendChild(opt);
-            });
-            select.value = valorSeleccionado;
-        }
-
-        // Eventos para que se actualicen los puntos al cambiar pestaña de fase
-        document.getElementById('p-grupos-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajesFamiliar);
-        document.getElementById('p-playoffs-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajesFamiliar);
-
         async function cargarPrediccionesParticipante() {
             const id = document.getElementById('select-participante').value;
             const conGrupos = document.getElementById('contenedor-predicciones-grupos');
             const conPlayoffs = document.getElementById('contenedor-predicciones-playoffs');
+            const banner = document.getElementById('banner-estadisticas');
             
             if (!id) {
-                conGrupos.innerHTML = '<div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>';
-                conPlayoffs.innerHTML = '<div class="text-center text-muted py-4">Seleccione un familiar para ver sus resultados.</div>';
+                conGrupos.innerHTML = '<div class="text-center text-muted py-4 fs-5">👆 Seleccione un familiar arriba para ver sus resultados.</div>';
+                conPlayoffs.innerHTML = '<div class="text-center text-muted py-4 fs-5">👆 Seleccione un familiar arriba para ver sus resultados.</div>';
+                banner.classList.add('d-none');
                 return;
             }
 
             conGrupos.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones...</div>';
             conPlayoffs.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones...</div>';
+            banner.classList.add('d-none');
 
             try {
                 const res = await fetch(`${API_URL}/participants/${id}`);
@@ -198,26 +220,37 @@
                 conGrupos.innerHTML = '';
                 conPlayoffs.innerHTML = '';
 
+                let ptsGrupos = 0;
+                let ptsPlayoffs = 0;
                 const gruposMap = {};   
                 const playoffsMap = {}; 
 
                 participant.predictions.forEach(pred => {
                     const match = pred.match;
                     const grupoStr = match.group || "";
+                    const pts = calcularPuntosLocal(pred.goalsA, pred.goalsB, match.realGoalsA, match.realGoalsB);
 
                     if (grupoStr.length > 1) {
+                        ptsPlayoffs += pts;
                         if (!playoffsMap[grupoStr]) playoffsMap[grupoStr] = [];
                         playoffsMap[grupoStr].push(pred);
                     } else {
+                        ptsGrupos += pts;
                         if (!gruposMap[grupoStr]) gruposMap[grupoStr] = [];
                         gruposMap[grupoStr].push(pred);
                     }
                 });
 
+                // Actualizar y mostrar Banner Atractivo
+                document.getElementById('banner-nombre').textContent = `👤 ${participant.name}`;
+                document.getElementById('banner-pts-grupos').textContent = ptsGrupos;
+                document.getElementById('banner-pts-playoffs').textContent = ptsPlayoffs;
+                banner.classList.remove('d-none');
+
                 // Render Grupos
                 const listaGrupos = Object.keys(gruposMap).sort();
                 if (listaGrupos.length === 0) {
-                    conGrupos.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones para Fase de Grupos.</div>';
+                    conGrupos.innerHTML = '<div class="alert alert-info text-center w-100 shadow-sm">No hay predicciones para Fase de Grupos.</div>';
                 } else {
                     listaGrupos.forEach(g => {
                         const seccion = document.createElement('div');
@@ -234,7 +267,7 @@
                 // Render Playoffs
                 const listaPlayoffs = Object.keys(playoffsMap);
                 if (listaPlayoffs.length === 0) {
-                    conPlayoffs.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones para Playoffs.</div>';
+                    conPlayoffs.innerHTML = '<div class="alert alert-info text-center w-100 shadow-sm">No hay predicciones para Playoffs.</div>';
                 } else {
                     const ordenEtapas = ["16AVOS", "OCTAVOS", "CUARTOS", "SEMIFINAL", "TERCER", "FINAL"];
                     listaPlayoffs.sort((a, b) => {
@@ -256,7 +289,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                conGrupos.innerHTML = '<div class="alert alert-danger text-center">Error de conexión.</div>';
+                conGrupos.innerHTML = '<div class="alert alert-danger text-center shadow-sm">Error de conexión.</div>';
             }
         }
 
@@ -266,19 +299,16 @@
             let colorBorde = "border-light", badgeClass = "bg-secondary", puntosHTML = "";
 
             if (realJugado) {
-                const predEmpate = pred.goalsA === pred.goalsB, realEmpate = match.realGoalsA === match.realGoalsB;
-                const predGanaA = pred.goalsA > pred.goalsB, realGanaA = match.realGoalsA > match.realGoalsB;
-                const predGanaB = pred.goalsA < pred.goalsB, realGanaB = match.realGoalsA < match.realGoalsB;
-
-                if (pred.goalsA === match.realGoalsA && pred.goalsB === match.realGoalsB) {
+                const pts = calcularPuntosLocal(pred.goalsA, pred.goalsB, match.realGoalsA, match.realGoalsB);
+                if (pts === 5) {
                     colorBorde = "border-success border-2"; badgeClass = "bg-success";
-                    puntosHTML = `<span class="badge bg-success d-block mt-1 shadow-sm">+5 pts (Exacto)</span>`;
-                } else if ((predEmpate && realEmpate) || (predGanaA && realGanaA) || (predGanaB && realGanaB)) {
+                    puntosHTML = `<span class="badge bg-success d-block mt-2 py-2 shadow-sm fs-6">🎯 +5 pts (Exacto)</span>`;
+                } else if (pts === 3) {
                     colorBorde = "border-warning border-2"; badgeClass = "bg-warning text-dark";
-                    puntosHTML = `<span class="badge bg-warning text-dark d-block mt-1 shadow-sm">+3 pts (Ganador)</span>`;
+                    puntosHTML = `<span class="badge bg-warning text-dark d-block mt-2 py-2 shadow-sm fs-6">👍 +3 pts (Ganador)</span>`;
                 } else {
                     colorBorde = "border-danger border-2"; badgeClass = "bg-danger";
-                    puntosHTML = `<span class="badge bg-danger d-block mt-1 shadow-sm">0 pts</span>`;
+                    puntosHTML = `<span class="badge bg-danger d-block mt-2 py-2 shadow-sm fs-6">❌ 0 pts</span>`;
                 }
             }
 
@@ -286,23 +316,22 @@
             const col = document.createElement('div');
             col.className = "col-md-6 col-lg-4";
             col.innerHTML = `
-                <div class="card h-100 shadow-sm ${colorBorde}">
+                <div class="card h-100 shadow-sm tarjeta-pred ${colorBorde} rounded-4">
                     <div class="card-body py-3 d-flex flex-column justify-content-center">
                         <div class="row align-items-center m-0 w-100">
-                            <div class="col-4 text-end fw-bold text-truncate px-1" title="${match.teamA}">${match.teamA}</div>
+                            <div class="col-4 text-end fw-bold text-truncate px-1 fs-5" title="${match.teamA}">${match.teamA}</div>
                             <div class="col-4 text-center px-0">
-                                <span class="badge ${badgeClass} fs-5 px-2 py-2 w-100 shadow-sm">${pred.goalsA} - ${pred.goalsB}</span>
-                                <small class="d-block mt-1 text-muted fw-bold" style="font-size: 0.75rem;">${textoReal}</small>
+                                <span class="badge ${badgeClass} fs-4 px-2 py-2 w-100 shadow-sm rounded-3">${pred.goalsA} - ${pred.goalsB}</span>
+                                <small class="d-block mt-2 text-muted fw-bold">${textoReal}</small>
                                 ${puntosHTML}
                             </div>
-                            <div class="col-4 text-start fw-bold text-truncate px-1" title="${match.teamB}">${match.teamB}</div>
+                            <div class="col-4 text-start fw-bold text-truncate px-1 fs-5" title="${match.teamB}">${match.teamB}</div>
                         </div>
                     </div>
                 </div>
             `;
             return col;
         }
-
 
         // ==========================================
         // 3. LÓGICA: VISTA POR PARTIDO
@@ -315,7 +344,6 @@
             
             const grupoFaseGrupos = document.createElement('optgroup');
             grupoFaseGrupos.label = "⚽ Fase de Grupos";
-            
             const grupoPlayoffs = document.createElement('optgroup');
             grupoPlayoffs.label = "🏆 Playoffs";
 
@@ -332,7 +360,6 @@
                 if (coincide) {
                     const option = document.createElement('option');
                     option.value = m.id;
-                    
                     if (esPlayoff) {
                         option.textContent = `[${grupoStr}] ${m.teamA} vs ${m.teamB}`;
                         grupoPlayoffs.appendChild(option);
@@ -346,9 +373,8 @@
             if (grupoFaseGrupos.children.length > 0) selectElement.appendChild(grupoFaseGrupos);
             if (grupoPlayoffs.children.length > 0) selectElement.appendChild(grupoPlayoffs);
             
-            // Limpiar la vista
             document.getElementById('cabecera-partido').innerHTML = '';
-            document.getElementById('lista-predicciones-partido').innerHTML = '<div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para ver las tendencias.</div>';
+            document.getElementById('lista-predicciones-partido').innerHTML = '<div class="text-center text-muted py-5 fs-5">👆 Selecciona un encuentro deportivo arriba para ver las tendencias.</div>';
         }
 
         async function cargarDetallesPartido() {
@@ -358,7 +384,7 @@
 
             if (!matchId) {
                 cabecera.innerHTML = '';
-                lista.innerHTML = '<div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para ver las tendencias.</div>';
+                lista.innerHTML = '<div class="text-center text-muted py-5 fs-5">👆 Selecciona un encuentro deportivo arriba para ver las tendencias.</div>';
                 return;
             }
 
@@ -373,26 +399,25 @@
                 const jugado = match.realGoalsA !== null && match.realGoalsB !== null;
                 const grupoStr = match.group || "";
 
-                // Header
+                // Header Elegante del Partido
                 cabecera.innerHTML = `
-                    <div class="card bg-dark text-white shadow-sm border-0">
-                        <div class="card-body text-center py-3">
-                            <div class="small text-warning text-uppercase fw-bold mb-1">${grupoStr.length <= 1 ? 'Fase de Grupos - Grupo ' + grupoStr : 'Fase Final - ' + grupoStr}</div>
+                    <div class="card bg-dark text-white shadow rounded-4 border-0 mb-3">
+                        <div class="card-body text-center py-4">
+                            <div class="small text-warning text-uppercase fw-bold mb-2 fs-6">${grupoStr.length <= 1 ? 'Fase de Grupos - Grupo ' + grupoStr : 'Fase Final - ' + grupoStr}</div>
                             <div class="d-flex align-items-center justify-content-center">
-                                <h3 class="mb-0 fw-bold px-3 text-truncate" style="max-width:35%;">${match.teamA}</h3>
-                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-4 mx-2 px-3 shadow-sm">${jugado ? match.realGoalsA + ' - ' + match.realGoalsB : 'VS'}</span>
-                                <h3 class="mb-0 fw-bold px-3 text-truncate" style="max-width:35%;">${match.teamB}</h3>
+                                <h2 class="mb-0 fw-bold px-3 text-truncate" style="max-width:40%;">${match.teamA}</h2>
+                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-2 mx-3 px-4 shadow rounded-pill">${jugado ? match.realGoalsA + ' - ' + match.realGoalsB : 'VS'}</span>
+                                <h2 class="mb-0 fw-bold px-3 text-truncate" style="max-width:40%;">${match.teamB}</h2>
                             </div>
                         </div>
                     </div>
                 `;
 
                 if(predictions.length === 0) {
-                     lista.innerHTML = '<div class="col-12"><div class="alert alert-info text-center">Nadie ha apostado en este partido todavía.</div></div>';
+                     lista.innerHTML = '<div class="col-12"><div class="alert alert-info text-center shadow-sm">Nadie ha apostado en este partido todavía.</div></div>';
                      return;
                 }
 
-                // Separar tendencias (Gana A, Empate, Gana B)
                 const apuestasGanaA = [], apuestasEmpate = [], apuestasGanaB = [];
                 predictions.forEach(p => {
                     if (p.goalsA > p.goalsB) apuestasGanaA.push(p);
@@ -402,30 +427,45 @@
 
                 function renderColumna(arreglo) {
                     if (arreglo.length === 0) return '<p class="text-center text-muted small my-3">Ninguna apuesta.</p>';
-                    return arreglo.map(p => `
-                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-light rounded mb-2">
-                            <span class="text-capitalize small fw-bold text-truncate me-2">${p.participant.name}</span>
-                            <span class="badge bg-dark fs-6 px-2 py-1">${p.goalsA} - ${p.goalsB}</span>
+                    return arreglo.map(p => {
+                        // Calcular puntos obtenidos por cada persona en ESTE partido
+                        let ptsBadge = "";
+                        let ptsClass = "bg-secondary"; // default (si no se ha jugado)
+                        
+                        if (jugado) {
+                            const pts = calcularPuntosLocal(p.goalsA, p.goalsB, match.realGoalsA, match.realGoalsB);
+                            if (pts === 5) { ptsBadge = "+5 pts"; ptsClass = "bg-success"; }
+                            else if (pts === 3) { ptsBadge = "+3 pts"; ptsClass = "bg-warning text-dark"; }
+                            else { ptsBadge = "0 pts"; ptsClass = "bg-danger"; }
+                        }
+
+                        return `
+                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-white rounded mb-2 shadow-sm">
+                            <span class="text-capitalize fs-6 fw-bold text-secondary text-truncate me-2" style="max-width: 50%;">${p.participant.name}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-dark fs-6 px-2 py-1 shadow-sm">${p.goalsA} - ${p.goalsB}</span>
+                                ${jugado ? `<span class="badge ${ptsClass} shadow-sm" style="width: 55px;">${ptsBadge}</span>` : ''}
+                            </div>
                         </div>
-                    `).join('');
+                    `}).join('');
                 }
 
                 lista.innerHTML = `
                     <div class="col-md-4">
-                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-success">
-                            <h5 class="text-center fw-bold mb-3 text-success text-truncate" title="Gana ${match.teamA}">Gana ${match.teamA} <br><small class="text-muted fw-normal">(${apuestasGanaA.length} apuestas)</small></h5>
+                        <div class="bg-light rounded-4 shadow-sm p-3 h-100 border-top border-4 border-success">
+                            <h5 class="text-center fw-bold mb-3 text-success text-truncate" title="Gana ${match.teamA}">Gana ${match.teamA} <br><small class="text-muted fw-normal fs-6">(${apuestasGanaA.length} apuestas)</small></h5>
                             ${renderColumna(apuestasGanaA)}
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-secondary">
-                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate <br><small class="text-muted fw-normal">(${apuestasEmpate.length} apuestas)</small></h5>
+                        <div class="bg-light rounded-4 shadow-sm p-3 h-100 border-top border-4 border-secondary">
+                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate <br><small class="text-muted fw-normal fs-6">(${apuestasEmpate.length} apuestas)</small></h5>
                             ${renderColumna(apuestasEmpate)}
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-primary">
-                            <h5 class="text-center fw-bold mb-3 text-primary text-truncate" title="Gana ${match.teamB}">Gana ${match.teamB} <br><small class="text-muted fw-normal">(${apuestasGanaB.length} apuestas)</small></h5>
+                        <div class="bg-light rounded-4 shadow-sm p-3 h-100 border-top border-4 border-primary">
+                            <h5 class="text-center fw-bold mb-3 text-primary text-truncate" title="Gana ${match.teamB}">Gana ${match.teamB} <br><small class="text-muted fw-normal fs-6">(${apuestasGanaB.length} apuestas)</small></h5>
                             ${renderColumna(apuestasGanaB)}
                         </div>
                     </div>
@@ -433,7 +473,7 @@
 
             } catch (error) {
                 console.error("Error:", error);
-                lista.innerHTML = '<div class="alert alert-danger text-center w-100">Error al cargar datos.</div>';
+                lista.innerHTML = '<div class="alert alert-danger text-center w-100 shadow-sm">Error al cargar datos.</div>';
             }
         }
 
@@ -451,10 +491,10 @@
             if (btnAuth) {
                 if (isAdmin) {
                     btnAuth.textContent = "Cerrar Sesión (Admin)";
-                    btnAuth.className = "btn btn-outline-danger ms-3 btn-sm";
+                    btnAuth.className = "btn btn-outline-danger ms-3 btn-sm shadow-sm";
                 } else {
                     btnAuth.textContent = "Iniciar Sesión";
-                    btnAuth.className = "btn btn-outline-light ms-3 btn-sm";
+                    btnAuth.className = "btn btn-outline-light ms-3 btn-sm shadow-sm";
                 }
             }
         }
@@ -467,7 +507,7 @@
                 window.location.reload();
             } else {
                 const pass = prompt('Ingresa la contraseña de administrador:');
-                if (pass === 'admin123') { // CONTRASEÑA
+                if (pass === 'admin123') { // CONTRASEÑA DE ACCESO
                     localStorage.setItem('isAdmin', 'true');
                     alert('¡Sesión iniciada con éxito!');
                     window.location.reload();
@@ -477,7 +517,6 @@
             }
         }
 
-        // Encendido al cargar la ventana
         window.onload = function() {
             checkAdmin();
             inicializarPagina();
