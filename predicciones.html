@@ -7,20 +7,34 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="bg-light">
+    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Tabla General</a></li>
-                    <li class="nav-item"><a class="nav-link" href="posiciones-playoffs.html">Posiciones Playoffs</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Posiciones
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="index.html">Tabla General</a></li>
+                            <li><a class="dropdown-item fw-bold text-primary" href="posiciones-playoffs.html">Tabla Playoffs 🏆</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
-                    <li class="nav-item"><a class="nav-link" href="playoffs.html">Playoffs</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="predicciones.html">Ver por Familiar</a></li>
-                    <li class="nav-item"><a class="nav-link" href="predicciones-partido.html">Ver por Partido</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="predicciones.html">Predicciones</a></li>
+                    
+                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    
+                    <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
             </div>
         </div>
@@ -30,7 +44,7 @@
         <h2 class="text-center mb-4">🔍 Predicciones por Familiar</h2>
         
         <div class="row justify-content-center mb-4">
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <select id="select-participante" class="form-select shadow-sm" onchange="cargarPredicciones()">
                     <option value="">-- Elige un Participante --</option>
                 </select>
@@ -48,33 +62,57 @@
 
         <div class="tab-content">
             <div class="tab-pane fade show active" id="p-grupos" role="tabpanel">
-                <div id="contenedor-predicciones-grupos" class="row g-3"></div>
+                <div id="contenedor-predicciones-grupos" class="row"></div>
             </div>
             <div class="tab-pane fade" id="p-playoffs" role="tabpanel">
-                <div id="contenedor-predicciones-playoffs" class="row g-3"></div>
+                <div id="contenedor-predicciones-playoffs" class="row"></div>
             </div>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+        let listaParticipantesGlobal = []; // Guarda la copia local para cambiar los puntos dinámicamente
 
+        // 1. CARGA INICIAL DE PARTICIPANTES
         async function cargarListaParticipantes() {
             try {
                 const res = await fetch(`${API_URL}/participants`);
-                const participantes = await res.json();
-                const select = document.getElementById('select-participante');
-                participantes.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = `${p.name} (${p.totalPoints} pts)`;
-                    select.appendChild(opt);
-                });
+                listaParticipantesGlobal = await res.json();
+                actualizarSelectorPuntajes();
             } catch (error) {
                 console.error("Error cargando participantes:", error);
             }
         }
 
+        // 2. ACTUALIZAR PUNTOS DINÁMICOS EN EL SELECTOR SEGÚN LA PESTAÑA ACTIVA
+        function actualizarSelectorPuntajes() {
+            const select = document.getElementById('select-participante');
+            const valorSeleccionado = select.value; // Guardamos la selección actual para que no se pierda al redibujar
+            
+            const tabGruposActiva = document.getElementById('p-grupos-tab').classList.contains('active');
+            
+            select.innerHTML = '<option value="">-- Elige un Participante --</option>';
+            
+            listaParticipantesGlobal.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                if (tabGruposActiva) {
+                    opt.textContent = `${p.name} (${p.totalPoints || 0} pts en Grupos)`;
+                } else {
+                    opt.textContent = `${p.name} (${p.playoffPoints || 0} pts en Playoffs)`;
+                }
+                select.appendChild(opt);
+            });
+            
+            select.value = valorSeleccionado; // Restauramos el participante que estaba mirando el usuario
+        }
+
+        // Detectar el cambio de pestaña para actualizar los puntajes de la barra de búsqueda inmediatamente
+        document.getElementById('p-grupos-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajes);
+        document.getElementById('p-playoffs-tab').addEventListener('shown.bs.tab', actualizarSelectorPuntajes);
+
+        // 3. CARGAR PREDICCIONES Y AGRUPARLAS VISUALMENTE
         async function cargarPredicciones() {
             const id = document.getElementById('select-participante').value;
             const conGrupos = document.getElementById('contenedor-predicciones-grupos');
@@ -86,8 +124,8 @@
                 return;
             }
 
-            conGrupos.innerHTML = '<div class="text-center py-4">⏳ Cargando...</div>';
-            conPlayoffs.innerHTML = '<div class="text-center py-4">⏳ Cargando...</div>';
+            conGrupos.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones de grupos...</div>';
+            conPlayoffs.innerHTML = '<div class="text-center py-4">⏳ Cargando predicciones de playoffs...</div>';
 
             try {
                 const res = await fetch(`${API_URL}/participants/${id}`);
@@ -96,65 +134,181 @@
                 conGrupos.innerHTML = '';
                 conPlayoffs.innerHTML = '';
 
+                // Mapas de almacenamiento para agrupar partidos
+                const gruposMap = {};   // { "A": [pred, pred], "B": [...] }
+                const playoffsMap = {}; // { "Octavos de Final": [...], "Cuartos de Final": [...] }
+
                 participant.predictions.forEach(pred => {
                     const match = pred.match;
-                    const realJugado = match.realGoalsA !== null && match.realGoalsB !== null;
-                    const grupoStr = match.group || ""; // PROTECCIÓN
-
-                    let colorBorde = "border-light";
-                    let badgeClass = "bg-secondary";
-
-                    if (realJugado) {
-                        const predEmpate = pred.goalsA === pred.goalsB;
-                        const realEmpate = match.realGoalsA === match.realGoalsB;
-                        const predGanaA = pred.goalsA > pred.goalsB;
-                        const realGanaA = match.realGoalsA > match.realGoalsB;
-                        const predGanaB = pred.goalsA < pred.goalsB;
-                        const realGanaB = match.realGoalsA < match.realGoalsB;
-
-                        if (pred.goalsA === match.realGoalsA && pred.goalsB === match.realGoalsB) {
-                            colorBorde = "border-success border-2"; badgeClass = "bg-success";
-                        } else if ((predEmpate && realEmpate) || (predGanaA && realGanaA) || (predGanaB && realGanaB)) {
-                            colorBorde = "border-warning border-2"; badgeClass = "bg-warning text-dark";
-                        } else {
-                            colorBorde = "border-danger border-2"; badgeClass = "bg-danger";
-                        }
-                    }
-
-                    const textoReal = realJugado ? `Real: ${match.realGoalsA} - ${match.realGoalsB}` : "⏳ Sin jugar";
-                    const faseTexto = grupoStr.length <= 1 ? `Grupo ${grupoStr}` : grupoStr;
-
-                    const col = document.createElement('div');
-                    col.className = "col-md-6 col-lg-4";
-                    col.innerHTML = `
-                        <div class="card h-100 shadow-sm ${colorBorde}">
-                            <div class="card-body py-3 d-flex flex-column justify-content-between">
-                                <div class="text-muted small text-center fw-bold text-uppercase mb-2">${faseTexto}</div>
-                                <div class="row align-items-center m-0 w-100">
-                                    <div class="col-4 text-end fw-bold text-truncate px-1">${match.teamA}</div>
-                                    <div class="col-4 text-center px-0">
-                                        <span class="badge ${badgeClass} fs-5 px-2 py-2 w-100 shadow-sm">${pred.goalsA} - ${pred.goalsB}</span>
-                                        <small class="d-block mt-1 text-muted fw-bold" style="font-size: 0.75rem;">${textoReal}</small>
-                                    </div>
-                                    <div class="col-4 text-start fw-bold text-truncate px-1">${match.teamB}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    const grupoStr = match.group || "";
 
                     if (grupoStr.length > 1) {
-                        conPlayoffs.appendChild(col);
+                        // Es una etapa de playoffs (ej: "Octavos de Final")
+                        if (!playoffsMap[grupoStr]) playoffsMap[grupoStr] = [];
+                        playoffsMap[grupoStr].push(pred);
                     } else {
-                        conGrupos.appendChild(col);
+                        // Es un grupo (ej: "A", "B")
+                        if (!gruposMap[grupoStr]) gruposMap[grupoStr] = [];
+                        gruposMap[grupoStr].push(pred);
                     }
                 });
 
+                // --- RENDERIZAR FASE DE GRUPOS ---
+                const listaGrupos = Object.keys(gruposMap).sort();
+                if (listaGrupos.length === 0) {
+                    conGrupos.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones registradas para Fase de Grupos.</div>';
+                } else {
+                    listaGrupos.forEach(g => {
+                        const seccionGrupo = document.createElement('div');
+                        seccionGrupo.className = "col-12 mb-4";
+                        seccionGrupo.innerHTML = `<h4 class="border-bottom pb-2 mb-3 text-primary fw-bold">📊 Grupo ${g}</h4>`;
+                        
+                        const filaTarjetas = document.createElement('div');
+                        filaTarjetas.className = "row g-3";
+
+                        gruposMap[g].forEach(pred => {
+                            filaTarjetas.appendChild(crearTarjetaPrediccion(pred));
+                        });
+
+                        seccionGrupo.appendChild(filaTarjetas);
+                        conGrupos.appendChild(seccionGrupo);
+                    });
+                }
+
+                // --- RENDERIZAR PLAYOFFS ---
+                const listaPlayoffs = Object.keys(playoffsMap);
+                if (listaPlayoffs.length === 0) {
+                    conPlayoffs.innerHTML = '<div class="alert alert-info text-center w-100">No hay predicciones registradas para Playoffs aún.</div>';
+                } else {
+                    // Orden de jerarquía para las etapas eliminatorias
+                    const ordenEtapas = ["OCTAVOS", "CUARTOS", "SEMIFINAL", "TERCER", "FINAL"];
+                    listaPlayoffs.sort((a, b) => {
+                        const idxA = ordenEtapas.findIndex(e => a.toUpperCase().includes(e));
+                        const idxB = ordenEtapas.findIndex(e => b.toUpperCase().includes(e));
+                        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                    });
+
+                    listaPlayoffs.forEach(p => {
+                        const seccionPlayoff = document.createElement('div');
+                        seccionPlayoff.className = "col-12 mb-4";
+                        seccionPlayoff.innerHTML = `<h4 class="border-bottom pb-2 mb-3 text-success fw-bold">🏆 ${p}</h4>`;
+                        
+                        const filaTarjetas = document.createElement('div');
+                        filaTarjetas.className = "row g-3";
+
+                        playoffsMap[p].forEach(pred => {
+                            filaTarjetas.appendChild(crearTarjetaPrediccion(pred));
+                        });
+
+                        seccionPlayoff.appendChild(filaTarjetas);
+                        conPlayoffs.appendChild(seccionPlayoff);
+                    });
+                }
+
             } catch (error) {
                 console.error("Error cargando predicciones:", error);
+                conGrupos.innerHTML = '<div class="alert alert-danger text-center">Error al conectar con el servidor.</div>';
+                conPlayoffs.innerHTML = '<div class="alert alert-danger text-center">Error al conectar con el servidor.</div>';
             }
         }
 
-        window.onload = cargarListaParticipantes;
+        // AUXILIAR: CREA EL CUADRO INDIVIDUAL DE CADA PARTIDO CON SUS COLORES Y DETALLES
+        function crearTarjetaPrediccion(pred) {
+            const match = pred.match;
+            const realJugado = match.realGoalsA !== null && match.realGoalsB !== null;
+
+            let colorBorde = "border-light";
+            let badgeClass = "bg-secondary";
+            let puntosHTML = "";
+
+            if (realJugado) {
+                const predEmpate = pred.goalsA === pred.goalsB;
+                const realEmpate = match.realGoalsA === match.realGoalsB;
+                const predGanaA = pred.goalsA > pred.goalsB;
+                const realGanaA = match.realGoalsA > match.realGoalsB;
+                const predGanaB = pred.goalsA < pred.goalsB;
+                const realGanaB = match.realGoalsA < match.realGoalsB;
+
+                if (pred.goalsA === match.realGoalsA && pred.goalsB === match.realGoalsB) {
+                    colorBorde = "border-success border-2"; 
+                    badgeClass = "bg-success";
+                    puntosHTML = `<span class="badge bg-success d-block mt-1">Exacto (+3 pts)</span>`;
+                } else if ((predEmpate && realEmpate) || (predGanaA && realGanaA) || (predGanaB && realGanaB)) {
+                    colorBorde = "border-warning border-2"; 
+                    badgeClass = "bg-warning text-dark";
+                    puntosHTML = `<span class="badge bg-warning text-dark d-block mt-1">Ganador (+1 pt)</span>`;
+                } else {
+                    colorBorde = "border-danger border-2"; 
+                    badgeClass = "bg-danger";
+                    puntosHTML = `<span class="badge bg-danger d-block mt-1">0 pts</span>`;
+                }
+            }
+
+            const textoReal = realJugado ? `Real: ${match.realGoalsA} - ${match.realGoalsB}` : "⏳ Sin jugar";
+
+            const col = document.createElement('div');
+            col.className = "col-md-6 col-lg-4";
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm ${colorBorde}">
+                    <div class="card-body py-3 d-flex flex-column justify-content-between">
+                        <div class="row align-items-center m-0 w-100">
+                            <div class="col-4 text-end fw-bold text-truncate px-1" title="${match.teamA}">${match.teamA}</div>
+                            <div class="col-4 text-center px-0">
+                                <span class="badge ${badgeClass} fs-5 px-2 py-2 w-100 shadow-sm">${pred.goalsA} - ${pred.goalsB}</span>
+                                <small class="d-block mt-1 text-muted fw-bold" style="font-size: 0.75rem;">${textoReal}</small>
+                                ${puntosHTML}
+                            </div>
+                            <div class="col-4 text-start fw-bold text-truncate px-1" title="${match.teamB}">${match.teamB}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return col;
+        }
+
+        // 4. LÓGICA DE CONTROL DEL NAVBAR (SEGURIDAD Y LOGIN ADMINISTRADOR)
+        function checkAdmin() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (isAdmin) el.classList.remove('d-none');
+                else el.classList.add('d-none');
+            });
+            
+            const btnAuth = document.getElementById('btn-auth');
+            if (btnAuth) {
+                if (isAdmin) {
+                    btnAuth.textContent = "Cerrar Sesión (Admin)";
+                    btnAuth.className = "btn btn-outline-danger ms-3 btn-sm";
+                } else {
+                    btnAuth.textContent = "Iniciar Sesión";
+                    btnAuth.className = "btn btn-outline-light ms-3 btn-sm";
+                }
+            }
+        }
+
+        function toggleAuth() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isAdmin) {
+                localStorage.removeItem('isAdmin');
+                alert('Sesión de administrador cerrada correctamente.');
+                window.location.reload();
+            } else {
+                const pass = prompt('Ingresa la contraseña de administrador:');
+                if (pass === 'admin123') { // Reemplaza por tu clave preferida
+                    localStorage.setItem('isAdmin', 'true');
+                    alert('¡Sesión iniciada con éxito!');
+                    window.location.reload();
+                } else if (pass !== null) {
+                    alert('Contraseña incorrecta.');
+                }
+            }
+        }
+
+        // Encendido maestro al cargar el documento
+        window.onload = function() {
+            checkAdmin();
+            cargarListaParticipantes();
+        };
     </script>
 </body>
 </html>
