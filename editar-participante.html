@@ -5,8 +5,15 @@
     <title>Admin - Editar Participante</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .hover-row:hover {
+            background-color: #f8f9fa !important;
+            transition: background-color 0.2s;
+        }
+    </style>
 </head>
 <body class="bg-light">
+    
     <script>
         if (localStorage.getItem('isAdmin') !== 'true') {
             alert('Acceso denegado. Solo el administrador puede editar participantes.');
@@ -17,54 +24,96 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Volver a Posiciones</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin-resultados.html">Admin Resultados</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Posiciones
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="index.html">Tabla General</a></li>
+                            <li><a class="dropdown-item fw-bold text-primary" href="posiciones-playoffs.html">Tabla Playoffs 🏆</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
+                    
+                    <li class="nav-item admin-only"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only"><a class="btn btn-success ms-3 btn-sm active" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    
+                    <li class="nav-item"><button class="btn btn-outline-danger ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Cerrar Sesión (Admin)</button></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container my-4" style="max-width: 900px;">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white py-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white py-3">
                 <h4 class="mb-0 text-center fw-bold">📝 Modificar Quiniela de Familiar</h4>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-4 bg-white">
                 
                 <div class="mb-4">
-                    <label for="select-participante" class="form-label fw-bold">Selecciona el Familiar a Editar:</label>
-                    <select id="select-participante" class="form-select border-primary shadow-sm" onchange="cargarPrediccionesDelParticipante()">
+                    <label for="select-participante" class="form-label fw-bold text-secondary">Selecciona el Familiar a Editar:</label>
+                    <select id="select-participante" class="form-select border-success shadow-sm" onchange="cargarPrediccionesDelParticipante()">
                         <option value="">-- Seleccione un Participante --</option>
                     </select>
                 </div>
                 
                 <ul class="nav nav-tabs mb-4" id="editarFasesTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold text-success" id="edit-grupos-tab" data-bs-toggle="tab" data-bs-target="#edit-grupos" type="button" role="tab">⚽ Predicciones Grupos</button>
+                        <button class="nav-link active fw-bold text-secondary" id="edit-grupos-tab" data-bs-toggle="tab" data-bs-target="#edit-grupos" type="button" role="tab">⚽ Predicciones Grupos</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold text-primary" id="edit-playoffs-tab" data-bs-toggle="tab" data-bs-target="#edit-playoffs" type="button" role="tab">🏆 Predicciones Playoffs</button>
+                        <button class="nav-link fw-bold text-secondary" id="edit-playoffs-tab" data-bs-toggle="tab" data-bs-target="#edit-playoffs" type="button" role="tab">🏆 Predicciones Playoffs</button>
                     </li>
                 </ul>
 
                 <form id="formulario-predicciones" onsubmit="guardarCambios(event)">
-                    <div class="tab-content border bg-white rounded p-3 mb-4 shadow-sm" style="max-height: 550px; overflow-y: auto;">
+                    <div class="tab-content rounded p-0 mb-4" style="min-height: 200px;">
+                        
                         <div class="tab-pane fade show active" id="edit-grupos" role="tabpanel">
-                            <div id="inputs-fase-grupos" class="row g-2">
-                                <div class="text-center text-muted py-3">Seleccione un participante arriba para cargar sus datos.</div>
+                            <div class="border rounded shadow-sm" style="max-height: 550px; overflow-y: auto;">
+                                <div id="inputs-fase-grupos" class="d-flex flex-column">
+                                    <div class="text-center text-muted py-5">Seleccione un participante arriba para cargar sus datos.</div>
+                                </div>
                             </div>
                         </div>
+                        
                         <div class="tab-pane fade" id="edit-playoffs" role="tabpanel">
-                            <div id="inputs-fase-playoffs" class="row g-2">
-                                <div class="text-center text-muted py-3">Seleccione un participante arriba para cargar sus datos.</div>
+                            <div class="row mb-3 d-none" id="filtro-playoffs-container">
+                                <div class="col-md-6">
+                                    <label for="filtro-fase" class="form-label fw-bold text-secondary small">Filtrar por Fase:</label>
+                                    <select id="filtro-fase" class="form-select form-select-sm" onchange="filtrarFasesPlayoffs()">
+                                        <option value="todos" selected>Mostrar Todas las Fases</option>
+                                        <option value="16avos">16avos de Final</option>
+                                        <option value="Octavos">Octavos de Final</option>
+                                        <option value="Cuartos">Cuartos de Final</option>
+                                        <option value="Semifinal">Semifinales</option>
+                                        <option value="Tercer">Tercer Puesto</option>
+                                        <option value="Final">Gran Final</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="border rounded shadow-sm" style="max-height: 550px; overflow-y: auto;">
+                                <div id="inputs-fase-playoffs" class="d-flex flex-column">
+                                    <div class="text-center text-muted py-5">Seleccione un participante arriba para cargar sus datos.</div>
+                                </div>
                             </div>
                         </div>
+                        
                     </div>
 
-                    <div class="text-center">
-                        <button type="submit" id="btn-guardar" class="btn btn-success btn-lg px-5 fw-bold shadow" disabled>
+                    <div class="text-center mt-4">
+                        <button type="submit" id="btn-guardar" class="btn btn-success btn-lg px-5 fw-bold shadow-sm" disabled>
                             💾 Guardar Cambios
                         </button>
                     </div>
@@ -76,14 +125,13 @@
     <script>
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
         let listaPartidosGlobal = [];
+        let mapaPrediccionesGlobal = {}; // Guardamos las predicciones para re-renderizar al filtrar
 
         async function inicializar() {
             try {
-                // 1. Cargar todos los partidos
                 const resMatches = await fetch(`${API_URL}/matches`);
                 listaPartidosGlobal = await resMatches.json();
 
-                // 2. Cargar todos los participantes para el selector
                 const resParts = await fetch(`${API_URL}/participants`);
                 const participantes = await resParts.json();
                 
@@ -104,63 +152,100 @@
             const panelGrupos = document.getElementById('inputs-fase-grupos');
             const panelPlayoffs = document.getElementById('inputs-fase-playoffs');
             const btnGuardar = document.getElementById('btn-guardar');
+            const filtroContenedor = document.getElementById('filtro-playoffs-container');
 
             if (!participanteId) {
-                panelGrupos.innerHTML = '<div class="text-center py-3">Seleccione un participante.</div>';
-                panelPlayoffs.innerHTML = '<div class="text-center py-3">Seleccione un participante.</div>';
+                panelGrupos.innerHTML = '<div class="text-center py-5 text-muted">Seleccione un participante.</div>';
+                panelPlayoffs.innerHTML = '<div class="text-center py-5 text-muted">Seleccione un participante.</div>';
                 btnGuardar.disabled = true;
+                filtroContenedor.classList.add('d-none');
                 return;
             }
 
-            panelGrupos.innerHTML = '<div class="text-center py-3">⏳ Cargando...</div>';
-            panelPlayoffs.innerHTML = '<div class="text-center py-3">⏳ Cargando...</div>';
+            panelGrupos.innerHTML = '<div class="text-center py-5">⏳ Cargando...</div>';
+            panelPlayoffs.innerHTML = '<div class="text-center py-5">⏳ Cargando...</div>';
             btnGuardar.disabled = false;
+            filtroContenedor.classList.remove('d-none');
 
             try {
                 const resUser = await fetch(`${API_URL}/participants/${participanteId}`);
                 const usuario = await resUser.json();
 
-                const mapaPredicciones = {};
+                mapaPrediccionesGlobal = {};
                 if (usuario.predictions) {
                     usuario.predictions.forEach(p => {
-                        mapaPredicciones[p.matchId] = p;
+                        mapaPrediccionesGlobal[p.matchId] = p;
                     });
                 }
 
-                panelGrupos.innerHTML = '';
-                panelPlayoffs.innerHTML = '';
-
-                listaPartidosGlobal.forEach(m => {
-                    const predExistente = mapaPredicciones[m.id];
-                    const valA = predExistente && predExistente.goalsA !== null ? predExistente.goalsA : '';
-                    const valB = predExistente && predExistente.goalsB !== null ? predExistente.goalsB : '';
-
-                    const grupo = m.group || "";
-                    const textoFase = grupo.length <= 1 ? `Grupo ${grupo}` : grupo;
-
-                    const rowPartido = document.createElement('div');
-                    rowPartido.className = "col-12 p-2 border-bottom d-flex align-items-center bg-white hover-row";
-                    
-                    rowPartido.innerHTML = `
-                        <div class="col-3 text-muted small fw-bold text-uppercase px-1">${textoFase}</div>
-                        <div class="col-3 text-end fw-bold text-truncate px-1" title="${m.teamA}">${m.teamA}</div>
-                        <div class="col-3 d-flex align-items-center justify-content-center px-1">
-                            <input type="number" id="predA-${m.id}" class="form-control form-control-sm text-center fw-bold mx-1" style="max-width: 55px;" min="0" value="${valA}">
-                            <span class="text-muted fw-bold small mx-1">-</span>
-                            <input type="number" id="predB-${m.id}" class="form-control form-control-sm text-center fw-bold mx-1" style="max-width: 55px;" min="0" value="${valB}">
-                        </div>
-                        <div class="col-3 text-start fw-bold text-truncate px-1" title="${m.teamB}">${m.teamB}</div>
-                    `;
-
-                    if (grupo.length > 1) {
-                        panelPlayoffs.appendChild(rowPartido);
-                    } else {
-                        panelGrupos.appendChild(rowPartido);
-                    }
-                });
+                renderizarFormularios();
             } catch (error) {
                 console.error("Error cargando apuestas:", error);
             }
+        }
+
+        function crearFilaPartido(m) {
+            const predExistente = mapaPrediccionesGlobal[m.id];
+            const valA = predExistente && predExistente.goalsA !== null ? predExistente.goalsA : '';
+            const valB = predExistente && predExistente.goalsB !== null ? predExistente.goalsB : '';
+            const grupo = m.group || "";
+            const textoFase = grupo.length <= 1 ? `Grupo ${grupo}` : grupo;
+
+            const rowPartido = document.createElement('div');
+            rowPartido.className = "p-3 border-bottom d-flex align-items-center bg-white hover-row fila-partido";
+            rowPartido.dataset.fase = grupo.toLowerCase(); 
+            rowPartido.dataset.id = m.id;
+            
+            rowPartido.innerHTML = `
+                <div class="col-3 text-muted small fw-bold text-uppercase px-1">${textoFase}</div>
+                <div class="col-3 text-end fw-bold text-truncate px-1" title="${m.teamA}">${m.teamA}</div>
+                <div class="col-3 d-flex align-items-center justify-content-center px-1">
+                    <input type="number" id="predA-${m.id}" class="form-control form-control-sm text-center fw-bold mx-1 border-secondary" style="max-width: 60px;" min="0" value="${valA}">
+                    <span class="text-muted fw-bold small mx-1">-</span>
+                    <input type="number" id="predB-${m.id}" class="form-control form-control-sm text-center fw-bold mx-1 border-secondary" style="max-width: 60px;" min="0" value="${valB}">
+                </div>
+                <div class="col-3 text-start fw-bold text-truncate px-1" title="${m.teamB}">${m.teamB}</div>
+            `;
+            return rowPartido;
+        }
+
+        function renderizarFormularios() {
+            const panelGrupos = document.getElementById('inputs-fase-grupos');
+            const panelPlayoffs = document.getElementById('inputs-fase-playoffs');
+            
+            panelGrupos.innerHTML = '';
+            panelPlayoffs.innerHTML = '';
+
+            listaPartidosGlobal.forEach(m => {
+                const grupo = m.group || "";
+                const fila = crearFilaPartido(m);
+
+                if (grupo.length > 1) {
+                    panelPlayoffs.appendChild(fila);
+                } else {
+                    panelGrupos.appendChild(fila);
+                }
+            });
+            
+            // Aplicar el filtro de playoffs inmediatamente si hay alguno seleccionado
+            filtrarFasesPlayoffs();
+        }
+
+        function filtrarFasesPlayoffs() {
+            const filtro = document.getElementById('filtro-fase').value.toLowerCase();
+            const panelPlayoffs = document.getElementById('inputs-fase-playoffs');
+            const filas = panelPlayoffs.querySelectorAll('.fila-partido');
+
+            filas.forEach(fila => {
+                const fasePartido = fila.dataset.fase;
+                if (filtro === 'todos' || fasePartido.includes(filtro)) {
+                    fila.classList.remove('d-none');
+                    fila.classList.add('d-flex'); // Restauramos el display flex de bootstrap
+                } else {
+                    fila.classList.remove('d-flex');
+                    fila.classList.add('d-none');
+                }
+            });
         }
 
         async function guardarCambios(event) {
@@ -173,17 +258,23 @@
             const promesas = [];
 
             listaPartidosGlobal.forEach(m => {
-                const valA = document.getElementById(`predA-${m.id}`).value;
-                const valB = document.getElementById(`predB-${m.id}`).value;
+                const inputA = document.getElementById(`predA-${m.id}`);
+                const inputB = document.getElementById(`predB-${m.id}`);
+                
+                // Asegurarse de que el elemento existe en el DOM antes de leer el valor (por el filtro)
+                if(inputA && inputB) {
+                    const valA = inputA.value;
+                    const valB = inputB.value;
 
-                if (valA !== '' && valB !== '') {
-                    promesas.push(
-                        fetch(`${API_URL}/predictions/${participanteId}/${m.id}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ goalsA: parseInt(valA, 10), goalsB: parseInt(valB, 10) })
-                        })
-                    );
+                    if (valA !== '' && valB !== '') {
+                        promesas.push(
+                            fetch(`${API_URL}/predictions/${participanteId}/${m.id}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ goalsA: parseInt(valA, 10), goalsB: parseInt(valB, 10) })
+                            })
+                        );
+                    }
                 }
             });
 
@@ -196,7 +287,15 @@
             } finally {
                 boton.innerHTML = '💾 Guardar Cambios';
                 boton.disabled = false;
+                // Recargamos los datos para asegurar sincronización
+                cargarPrediccionesDelParticipante();
             }
+        }
+
+        function toggleAuth() {
+            localStorage.removeItem('isAdmin');
+            alert('Sesión de administrador cerrada correctamente.');
+            window.location.href = 'index.html';
         }
 
         window.onload = inicializar;
