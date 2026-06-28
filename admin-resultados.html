@@ -23,8 +23,17 @@
             
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Posiciones</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            Posiciones
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="index.html">Tabla General</a></li>
+                            <li><a class="dropdown-item fw-bold text-primary" href="posiciones-playoffs.html">Tabla Playoffs 🏆</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
                     <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
                     
@@ -38,29 +47,50 @@
     </nav>
 
     <div class="container mt-4 mb-5" style="max-width: 800px;">
-        <h2 class="text-center mb-4">Ingresar o Editar Resultados Reales</h2>
+        <h2 class="text-center mb-4">Ingresar o Editar Resultados</h2>
 
         <ul class="nav nav-pills justify-content-center mb-4 bg-white p-2 rounded shadow-sm" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#admin-fecha1">Fecha 1</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link fw-bold active" data-bs-toggle="pill" data-bs-target="#admin-fecha1">Fecha 1</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#admin-fecha2">Fecha 2</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#admin-fecha3">Fecha 3</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link fw-bold bg-warning text-dark ms-2" data-bs-toggle="pill" data-bs-target="#admin-playoffs">🏆 Playoffs</button></li>
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="admin-fecha1">
-                <div class="row" id="admin-lista-fecha1">
-                    <div class="text-center text-muted my-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando Fecha 1...</div>
+            <div class="tab-pane fade show active" id="admin-fecha1"><div class="row" id="admin-lista-fecha1"></div></div>
+            <div class="tab-pane fade" id="admin-fecha2"><div class="row" id="admin-lista-fecha2"></div></div>
+            <div class="tab-pane fade" id="admin-fecha3"><div class="row" id="admin-lista-fecha3"></div></div>
+            
+            <div class="tab-pane fade" id="admin-playoffs">
+                <div class="card border-primary mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold">➕ Agregar Nuevo Partido de Eliminatoria</div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <select id="nuevo-fase" class="form-select">
+                                    <option value="16avos">16avos de Final</option>
+                                    <option value="Octavos">Octavos de Final</option>
+                                    <option value="Cuartos">Cuartos de Final</option>
+                                    <option value="Semifinal">Semifinal</option>
+                                    <option value="Tercer Puesto">Tercer Puesto</option>
+                                    <option value="Final">Final</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" id="nuevo-teamA" class="form-control" placeholder="Equipo Local">
+                            </div>
+                            <div class="col-md-1 text-center fw-bold mt-2">VS</div>
+                            <div class="col-md-3">
+                                <input type="text" id="nuevo-teamB" class="form-control" placeholder="Equipo Visitante">
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100 fw-bold" onclick="crearPartidoPlayoff()">Crear</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="tab-pane fade" id="admin-fecha2">
-                <div class="row" id="admin-lista-fecha2">
-                    <div class="text-center text-muted my-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando Fecha 2...</div>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="admin-fecha3">
-                <div class="row" id="admin-lista-fecha3">
-                    <div class="text-center text-muted my-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando Fecha 3...</div>
-                </div>
+                <hr>
+                <div class="row" id="admin-lista-playoffs"></div>
             </div>
         </div>
     </div>
@@ -71,11 +101,9 @@
 
         function verificarAdmin() {
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            
             document.querySelectorAll('.admin-only').forEach(el => {
                 el.classList.toggle('d-none', !isAdmin);
             });
-            
             const btnAuth = document.getElementById('btn-auth');
             if(btnAuth) {
                 btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
@@ -94,8 +122,6 @@
                     localStorage.setItem('isAdmin', 'true');
                     alert('¡Sesión iniciada como administrador!');
                     verificarAdmin();
-                } else if (pass !== null) {
-                    alert('Contraseña incorrecta');
                 }
             }
         }
@@ -107,38 +133,45 @@
                 const response = await fetch(`${API_URL}/matches`);
                 const matches = await response.json();
 
-                // Limpiamos los contenedores de carga inicial antes de renderizar
                 document.getElementById('admin-lista-fecha1').innerHTML = '';
                 document.getElementById('admin-lista-fecha2').innerHTML = '';
                 document.getElementById('admin-lista-fecha3').innerHTML = '';
+                document.getElementById('admin-lista-playoffs').innerHTML = '';
 
                 matches.forEach(m => {
-                    // Corregido: Clasificación consistente basada en el ID único del partido
                     let contenedorId = 'admin-lista-fecha1';
-                    if (m.id >= 25 && m.id <= 48) contenedorId = 'admin-lista-fecha2';
-                    if (m.id > 48) contenedorId = 'admin-lista-fecha3';
+                    let etiquetaFase = '';
+                    
+                    // Lógica para detectar dónde va el partido
+                    if (m.group && m.group.length > 1) { 
+                        // Si el grupo tiene más de 1 letra (ej: "Octavos"), va a Playoffs
+                        contenedorId = 'admin-lista-playoffs';
+                        etiquetaFase = `<span class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle">${m.group}</span>`;
+                    } else {
+                        if (m.id >= 25 && m.id <= 48) contenedorId = 'admin-lista-fecha2';
+                        if (m.id > 48 && m.id <= 72) contenedorId = 'admin-lista-fecha3';
+                    }
 
                     const contenedor = document.getElementById(contenedorId);
                     if (!contenedor) return;
 
                     const col = document.createElement('div');
-                    col.className = 'col-12 mb-2';
+                    col.className = 'col-12 mb-3 position-relative mt-2';
                     
                     const valA = m.realGoalsA ?? '';
                     const valB = m.realGoalsB ?? '';
                     const jugado = valA !== '' && valB !== '';
                     
-                    // Diseño visual dinámico: Si ya tiene resultado, se marca en verde sutil
                     const cardClase = jugado ? 'border-success bg-white shadow-sm' : 'border-0 bg-white shadow-sm';
                     const textoBoton = jugado ? '🔄 Actualizar' : '💾 Guardar';
                     const colorBoton = jugado ? 'btn-success' : 'btn-primary';
 
                     col.innerHTML = `
-                        <div class="card ${cardClase}" id="card-match-${m.id}">
+                        <div class="card ${cardClase} pt-2" id="card-match-${m.id}">
+                            ${etiquetaFase}
                             <div class="card-body py-2 px-3">
                                 <div class="row align-items-center m-0">
                                     <div class="col-4 text-end fw-bold fs-6 text-truncate p-0" title="${m.teamA}">${m.teamA}</div>
-                                    
                                     <div class="col-4 px-1">
                                         <div class="d-flex justify-content-center align-items-center">
                                             <input type="number" id="golesA-${m.id}" class="form-control text-center fw-bold border-secondary shadow-sm" value="${valA}" min="0" style="width: 55px; height: 38px;">
@@ -146,7 +179,6 @@
                                             <input type="number" id="golesB-${m.id}" class="form-control text-center fw-bold border-secondary shadow-sm" value="${valB}" min="0" style="width: 55px; height: 38px;">
                                         </div>
                                     </div>
-                                    
                                     <div class="col-4 text-start fw-bold fs-6 text-truncate p-0" title="${m.teamB}">${m.teamB}</div>
                                 </div>
                                 <div class="text-center mt-2">
@@ -162,6 +194,36 @@
             }
         }
 
+        async function crearPartidoPlayoff() {
+            const teamA = document.getElementById('nuevo-teamA').value.trim();
+            const teamB = document.getElementById('nuevo-teamB').value.trim();
+            const fase = document.getElementById('nuevo-fase').value;
+
+            if (!teamA || !teamB) {
+                alert("Debes escribir el nombre de ambos equipos.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/matches`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teamA: teamA, teamB: teamB, group: fase })
+                });
+
+                if (response.ok) {
+                    document.getElementById('nuevo-teamA').value = '';
+                    document.getElementById('nuevo-teamB').value = '';
+                    alert("¡Partido de eliminatoria creado con éxito!");
+                    cargarPartidosAdmin(); // Recarga la lista
+                } else {
+                    alert("Error al crear el partido.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
         async function guardarResultado(matchId) {
             const golesA = document.getElementById(`golesA-${matchId}`).value;
             const golesB = document.getElementById(`golesB-${matchId}`).value;
@@ -172,10 +234,8 @@
                 return;
             }
 
-            if(boton) {
-                boton.innerHTML = '⏳...';
-                boton.disabled = true;
-            }
+            boton.innerHTML = '⏳...';
+            boton.disabled = true;
 
             try {
                 const response = await fetch(`${API_URL}/matches/${matchId}/result`, {
@@ -185,30 +245,19 @@
                 });
 
                 if (response.ok) {
-                    // Cambio: En vez de recargar la página completa, modificamos visualmente la tarjeta para dar feedback inmediato
                     const tarjeta = document.getElementById(`card-match-${matchId}`);
-                    if(tarjeta) {
-                        tarjeta.className = "card border-success bg-white shadow-sm";
-                    }
-                    if(boton) {
-                        boton.className = "btn btn-success btn-sm px-4 fw-bold shadow-sm";
-                        boton.innerHTML = "🔄 Actualizar";
-                    }
-                    alert('¡Resultado guardado correctamente y puntajes actualizados!');
-                } else {
-                    alert('Error en el servidor al intentar procesar el partido.');
-                    if(boton) boton.innerHTML = "💾 Guardar";
+                    tarjeta.className = "card border-success bg-white shadow-sm pt-2";
+                    boton.className = "btn btn-success btn-sm px-4 fw-bold shadow-sm";
+                    boton.innerHTML = "🔄 Actualizar";
+                    alert('¡Resultado guardado correctamente y puntajes recalculados!');
                 }
             } catch (error) {
-                console.error("Error al guardar el resultado real:", error);
-                alert("Hubo un error de red. Intenta nuevamente.");
-                if(boton) boton.innerHTML = "💾 Guardar";
+                console.error("Error al guardar:", error);
             } finally {
-                if(boton) boton.disabled = false;
+                boton.disabled = false;
             }
         }
 
-        // Carga inicial al cargar el DOM
         cargarPartidosAdmin();
     </script>
 </body>
