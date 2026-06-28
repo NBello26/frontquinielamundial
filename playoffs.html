@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="bg-light">
+    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
@@ -17,7 +18,7 @@
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Posiciones
                         </a>
                         <ul class="dropdown-menu">
@@ -26,7 +27,7 @@
                         </ul>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="playoffs.html">🏆 Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
                     <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
                     
@@ -51,6 +52,7 @@
                     <option value="Octavos">Octavos de Final</option>
                     <option value="Cuartos">Cuartos de Final</option>
                     <option value="Semifinal">Semifinales</option>
+                    <option value="Tercer">Tercer Puesto</option>
                     <option value="Final">Gran Final</option>
                 </select>
             </div>
@@ -63,17 +65,19 @@
         const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
         let todosLosPlayoffs = [];
 
+        // 1. FUNCIONES DE CARGA Y RENDERIZADO DE LOS PARTIDOS
         async function cargarPlayoffs() {
             try {
                 const res = await fetch(`${API_URL}/matches`);
                 const partidos = await res.json();
                 
-                // Filtramos ÚNICAMENTE los partidos de eliminatorias
+                // Filtramos ÚNICAMENTE los partidos de eliminatorias (group tiene más de 1 letra)
                 todosLosPlayoffs = partidos.filter(m => (m.group || "").length > 1);
                 
                 renderizarPlayoffs();
             } catch (error) {
                 console.error("Error cargando playoffs:", error);
+                document.getElementById('contenedor-playoffs').innerHTML = '<div class="alert alert-danger text-center">Error al cargar los partidos. Verifica tu conexión.</div>';
             }
         }
 
@@ -88,7 +92,7 @@
                 : todosLosPlayoffs.filter(m => m.group.toLowerCase().includes(faseSeleccionada.toLowerCase()));
 
             if (partidosFiltrados.length === 0) {
-                contenedor.innerHTML = '<div class="alert alert-info text-center">Aún no hay partidos registrados.</div>';
+                contenedor.innerHTML = '<div class="alert alert-info text-center">Aún no hay partidos registrados para esta fase.</div>';
                 return;
             }
 
@@ -98,7 +102,15 @@
                 fasesAgrupadas[m.group].push(m);
             });
 
-            for (const fase in fasesAgrupadas) {
+            // Orden de prioridad para mostrar de arriba hacia abajo
+            const ordenEtapas = ["16AVOS", "OCTAVOS", "CUARTOS", "SEMIFINAL", "TERCER", "FINAL"];
+            const listaFases = Object.keys(fasesAgrupadas).sort((a, b) => {
+                const idxA = ordenEtapas.findIndex(e => a.toUpperCase().includes(e));
+                const idxB = ordenEtapas.findIndex(e => b.toUpperCase().includes(e));
+                return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+            });
+
+            listaFases.forEach(fase => {
                 const seccionFase = document.createElement('div');
                 seccionFase.className = "mb-5";
                 seccionFase.innerHTML = `<h3 class="border-bottom pb-2 text-primary text-uppercase font-monospace fs-4">${fase}</h3>`;
@@ -114,11 +126,11 @@
                         <div class="card shadow-sm border-light h-100">
                             <div class="card-body text-center d-flex flex-column justify-content-center">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <div class="fw-bold text-truncate w-100 text-end pe-2" style="max-width:40%;">${m.teamA}</div>
+                                    <div class="fw-bold text-truncate w-100 text-end pe-2" style="max-width:40%;" title="${m.teamA}">${m.teamA}</div>
                                     <div class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-5 px-3 py-1 mx-1 shadow-sm">
                                         ${jugado ? `${m.realGoalsA} - ${m.realGoalsB}` : 'VS'}
                                     </div>
-                                    <div class="fw-bold text-truncate w-100 text-start ps-2" style="max-width:40%;">${m.teamB}</div>
+                                    <div class="fw-bold text-truncate w-100 text-start ps-2" style="max-width:40%;" title="${m.teamB}">${m.teamB}</div>
                                 </div>
                                 <small class="${jugado ? 'text-success fw-bold' : 'text-muted'} d-block mt-2">
                                     ${jugado ? '✓ Finalizado' : '⏳ Por Jugar'}
@@ -130,10 +142,55 @@
                 });
                 seccionFase.appendChild(row);
                 contenedor.appendChild(seccionFase);
+            });
+        }
+
+        // 2. FUNCIONES DE SEGURIDAD PARA LA NAVBAR UNIFICADA
+        function checkAdmin() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            // Mostrar u ocultar elementos que tengan la clase .admin-only
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (isAdmin) el.classList.remove('d-none');
+                else el.classList.add('d-none');
+            });
+            
+            // Cambiar aspecto del botón de Iniciar/Cerrar sesión
+            const btnAuth = document.getElementById('btn-auth');
+            if (btnAuth) {
+                if (isAdmin) {
+                    btnAuth.textContent = "Cerrar Sesión (Admin)";
+                    btnAuth.className = "btn btn-outline-danger ms-3 btn-sm";
+                } else {
+                    btnAuth.textContent = "Iniciar Sesión";
+                    btnAuth.className = "btn btn-outline-light ms-3 btn-sm";
+                }
             }
         }
 
-        cargarPlayoffs();
+        function toggleAuth() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isAdmin) {
+                localStorage.removeItem('isAdmin');
+                alert('Sesión de administrador cerrada correctamente.');
+                window.location.reload();
+            } else {
+                const pass = prompt('Ingresa la contraseña de administrador:');
+                if (pass === 'admin123') { // Reemplaza "admin123" por tu contraseña real
+                    localStorage.setItem('isAdmin', 'true');
+                    alert('¡Sesión iniciada con éxito!');
+                    window.location.reload();
+                } else if (pass !== null) {
+                    alert('Contraseña incorrecta.');
+                }
+            }
+        }
+
+        // Ejecutar funciones al arrancar la página
+        window.onload = function() {
+            checkAdmin();
+            cargarPlayoffs();
+        };
     </script>
 </body>
 </html>
