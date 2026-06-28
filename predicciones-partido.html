@@ -10,17 +10,14 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
-                <span class="navbar-toggler-icon"></span>
-            </button>
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.html">Tabla General</a></li>
                     <li class="nav-item"><a class="nav-link" href="posiciones-playoffs.html">Posiciones Playoffs</a></li>
-                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados Reales</a></li>
+                    <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="playoffs.html">Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="predicciones.html">Ver por Familiar</a></li>
                     <li class="nav-item"><a class="nav-link active" href="predicciones-partido.html">Ver por Partido</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-outline-warning btn-sm text-warning ms-2 px-3" href="admin-resultados.html">Admin</a></li>
                 </ul>
             </div>
         </div>
@@ -31,7 +28,6 @@
         
         <div class="row justify-content-center mb-5">
             <div class="col-md-6">
-                <label for="select-partido" class="form-label fw-bold">Selecciona un Partido para Analizar:</label>
                 <select id="select-partido" class="form-select shadow-sm" onchange="cargarDetallesPartido()">
                     <option value="">-- Elige un Partido para Inspeccionar --</option>
                 </select>
@@ -39,9 +35,8 @@
         </div>
 
         <div id="cabecera-partido" class="mb-4"></div>
-
         <div class="row g-3" id="lista-predicciones-partido">
-            <div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para desplegar el desglose familiar.</div>
+            <div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba.</div>
         </div>
     </div>
 
@@ -54,24 +49,22 @@
                 const partidos = await res.json();
                 
                 const selectElement = document.getElementById('select-partido');
-                selectElement.innerHTML = '<option value="">-- Elige un Partido para Inspeccionar --</option>';
-                
-                // Creamos los agrupadores nativos HTML
                 const grupoFaseGrupos = document.createElement('optgroup');
                 grupoFaseGrupos.label = "⚽ Fase de Grupos";
                 
                 const grupoPlayoffs = document.createElement('optgroup');
-                grupoPlayoffs.label = "🏆 Partidos de Playoffs (Eliminación Directa)";
+                grupoPlayoffs.label = "🏆 Playoffs";
                 
                 partidos.forEach(m => {
+                    const grupoStr = m.group || ""; // PROTECCIÓN
                     const option = document.createElement('option');
                     option.value = m.id;
                     
-                    if (m.group && m.group.length > 1) {
-                        option.textContent = `[${m.group}] ${m.teamA} vs ${m.teamB}`;
+                    if (grupoStr.length > 1) {
+                        option.textContent = `[${grupoStr}] ${m.teamA} vs ${m.teamB}`;
                         grupoPlayoffs.appendChild(option);
                     } else {
-                        option.textContent = `[Grupo ${m.group}] ${m.teamA} vs ${m.teamB}`;
+                        option.textContent = `[Grupo ${grupoStr}] ${m.teamA} vs ${m.teamB}`;
                         grupoFaseGrupos.appendChild(option);
                     }
                 });
@@ -80,7 +73,7 @@
                 selectElement.appendChild(grupoPlayoffs);
                 
             } catch (error) {
-                console.error("Error estructurando el selector de partidos:", error);
+                console.error("Error estructurando el selector:", error);
             }
         }
 
@@ -91,7 +84,7 @@
 
             if (!matchId) {
                 cabecera.innerHTML = '';
-                lista.innerHTML = '<div class="text-center text-muted py-5">Selecciona un encuentro deportivo arriba para desplegar el desglose familiar.</div>';
+                lista.innerHTML = '';
                 return;
             }
 
@@ -100,37 +93,24 @@
             try {
                 const res = await fetch(`${API_URL}/matches/${matchId}/predictions`);
                 const data = await res.json();
-
                 const match = data.match;
                 const predictions = data.predictions;
-
                 const jugado = match.realGoalsA !== null && match.realGoalsB !== null;
-                const textoResultadoReal = jugado ? `${match.realGoalsA} - ${match.realGoalsB}` : "VS";
-                const textoFase = match.group.length === 1 ? `Fase de Grupos - Grupo ${match.group}` : `Fase Final - ${match.group}`;
+                const grupoStr = match.group || "";
 
-                // Imprimir cabecera de contexto
                 cabecera.innerHTML = `
                     <div class="card bg-dark text-white shadow-sm">
                         <div class="card-body text-center py-3">
-                            <div class="small text-warning text-uppercase fw-bold mb-1">${textoFase}</div>
+                            <div class="small text-warning text-uppercase fw-bold mb-1">${grupoStr.length <= 1 ? 'Grupo ' + grupoStr : grupoStr}</div>
                             <div class="d-flex align-items-center justify-content-center">
-                                <h4 class="mb-0 fw-bold px-3 text-truncate" style="max-width: 35%;">${match.teamA}</h4>
-                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-4 mx-2 px-3">${textoResultadoReal}</span>
-                                <h4 class="mb-0 fw-bold px-3 text-truncate" style="max-width: 35%;">${match.teamB}</h4>
+                                <h4 class="mb-0 fw-bold px-3 text-truncate">${match.teamA}</h4>
+                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-4 mx-2 px-3">${jugado ? match.realGoalsA + ' - ' + match.realGoalsB : 'VS'}</span>
+                                <h4 class="mb-0 fw-bold px-3 text-truncate">${match.teamB}</h4>
                             </div>
-                            <small class="d-block mt-2 ${jugado ? 'text-success fw-bold' : 'text-white-50'}">
-                                ${jugado ? '✓ Resultado Confirmado' : '⏳ Partido en Espera'}
-                            </small>
                         </div>
                     </div>
                 `;
 
-                if (predictions.length === 0) {
-                    lista.innerHTML = '<div class="col-12"><div class="alert alert-info text-center">Nadie ha cargado predicciones para este partido todavía.</div></div>';
-                    return;
-                }
-
-                // Clasificar tendencias de apuestas
                 const apuestasGanaA = [];
                 const apuestasEmpate = [];
                 const apuestasGanaB = [];
@@ -142,12 +122,10 @@
                 });
 
                 function renderColumna(arregloApuestas) {
-                    if (arregloApuestas.length === 0) {
-                        return '<p class="text-center text-muted small my-3">Sin apuestas en esta columna.</p>';
-                    }
+                    if (arregloApuestas.length === 0) return '<p class="text-center text-muted small my-3">Sin apuestas.</p>';
                     return arregloApuestas.map(p => `
                         <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-light rounded mb-2">
-                            <span class="text-capitalize small fw-bold text-truncate me-2" style="max-width: 70%;">${p.participant.name}</span>
+                            <span class="text-capitalize small fw-bold text-truncate me-2">${p.participant.name}</span>
                             <span class="badge bg-dark fs-6 px-2 py-1">${p.goalsA} - ${p.goalsB}</span>
                         </div>
                     `).join('');
@@ -156,29 +134,26 @@
                 lista.innerHTML = `
                     <div class="col-md-4">
                         <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-success">
-                            <h5 class="text-center fw-bold mb-3 text-success">Gana ${match.teamA} <br><small class="text-muted fw-normal">(${apuestasGanaA.length} apuestas)</small></h5>
+                            <h5 class="text-center fw-bold mb-3 text-success">Gana ${match.teamA}</h5>
                             ${renderColumna(apuestasGanaA)}
                         </div>
                     </div>
-                    
                     <div class="col-md-4">
                         <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-secondary">
-                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate <br><small class="text-muted fw-normal">(${apuestasEmpate.length} apuestas)</small></h5>
+                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate</h5>
                             ${renderColumna(apuestasEmpate)}
                         </div>
                     </div>
-
                     <div class="col-md-4">
                         <div class="bg-white rounded shadow-sm p-3 h-100 border-top border-4 border-primary">
-                            <h5 class="text-center fw-bold mb-3 text-primary">Gana ${match.teamB} <br><small class="text-muted fw-normal">(${apuestasGanaB.length} apuestas)</small></h5>
+                            <h5 class="text-center fw-bold mb-3 text-primary">Gana ${match.teamB}</h5>
                             ${renderColumna(apuestasGanaB)}
                         </div>
                     </div>
                 `;
 
             } catch (error) {
-                console.error("Error cargando detalles del partido:", error);
-                lista.innerHTML = '<div class="col-12"><div class="alert alert-danger text-center">Hubo un error al cargar las predicciones.</div></div>';
+                console.error("Error:", error);
             }
         }
 
