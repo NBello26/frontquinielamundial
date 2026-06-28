@@ -302,31 +302,38 @@
                 const pts = calcularPuntosLocal(pred.goalsA, pred.goalsB, match.realGoalsA, match.realGoalsB);
                 if (pts === 5) {
                     colorBorde = "border-success border-2"; badgeClass = "bg-success";
-                    puntosHTML = `<span class="badge bg-success d-block mt-2 py-2 shadow-sm fs-6">🎯 +5 pts (Exacto)</span>`;
+                    puntosHTML = `<span class="badge bg-success shadow-sm fs-6 px-3 py-2 rounded-pill">🎯 +5 pts (Exacto)</span>`;
                 } else if (pts === 3) {
                     colorBorde = "border-warning border-2"; badgeClass = "bg-warning text-dark";
-                    puntosHTML = `<span class="badge bg-warning text-dark d-block mt-2 py-2 shadow-sm fs-6">👍 +3 pts (Ganador)</span>`;
+                    puntosHTML = `<span class="badge bg-warning text-dark shadow-sm fs-6 px-3 py-2 rounded-pill">👍 +3 pts (Ganador)</span>`;
                 } else {
                     colorBorde = "border-danger border-2"; badgeClass = "bg-danger";
-                    puntosHTML = `<span class="badge bg-danger d-block mt-2 py-2 shadow-sm fs-6">❌ 0 pts</span>`;
+                    puntosHTML = `<span class="badge bg-danger shadow-sm fs-6 px-3 py-2 rounded-pill">❌ 0 pts</span>`;
                 }
             }
 
-            const textoReal = realJugado ? `Real: ${match.realGoalsA} - ${match.realGoalsB}` : "⏳ Sin jugar";
+            const textoReal = realJugado ? `Marcador Real: ${match.realGoalsA} - ${match.realGoalsB}` : "⏳ Partido sin jugar";
             const col = document.createElement('div');
             col.className = "col-md-6 col-lg-4";
+            
+            // Corrección de diseño: Separamos el marcador de la fila de los equipos
             col.innerHTML = `
                 <div class="card h-100 shadow-sm tarjeta-pred ${colorBorde} rounded-4">
-                    <div class="card-body py-3 d-flex flex-column justify-content-center">
-                        <div class="row align-items-center m-0 w-100">
+                    <div class="card-body p-3 d-flex flex-column justify-content-between text-center">
+                        
+                        <div class="row align-items-center m-0 w-100 mb-3">
                             <div class="col-4 text-end fw-bold text-truncate px-1 fs-5" title="${match.teamA}">${match.teamA}</div>
                             <div class="col-4 text-center px-0">
                                 <span class="badge ${badgeClass} fs-4 px-2 py-2 w-100 shadow-sm rounded-3">${pred.goalsA} - ${pred.goalsB}</span>
-                                <small class="d-block mt-2 text-muted fw-bold">${textoReal}</small>
-                                ${puntosHTML}
                             </div>
                             <div class="col-4 text-start fw-bold text-truncate px-1 fs-5" title="${match.teamB}">${match.teamB}</div>
                         </div>
+
+                        <div class="mt-auto pt-2 border-top">
+                            <small class="d-block mb-2 text-muted fw-bold">${textoReal}</small>
+                            ${puntosHTML}
+                        </div>
+                        
                     </div>
                 </div>
             `;
