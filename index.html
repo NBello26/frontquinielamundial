@@ -115,18 +115,35 @@
 
         async function cargarParticipantes() {
             try {
-                const res = await fetch(`${API_URL}/participants`);
-                const data = await res.json();
-                const tbody = document.getElementById('tabla-participantes');
+                // Hacemos ambas peticiones en paralelo para poder cruzar los datos
+                const [resParticipants, resPlayoffs] = await Promise.all([
+                    fetch(`${API_URL}/participants`),
+                    fetch(`${API_URL}/leaderboard/playoffs`)
+                ]);
+
+                const participants = await resParticipants.json();
+                const playoffsData = await resPlayoffs.json();
                 
+                const tbody = document.getElementById('tabla-participantes');
                 if (!tbody) return;
                 tbody.innerHTML = '';
                 
-                // Lógica: Grupos = Total - Playoffs
-                data.forEach(p => p.grupoPoints = (p.totalPoints || 0) - (p.playoffPoints || 0));
-                data.sort((a, b) => b.grupoPoints - a.grupoPoints);
+                // Creamos un diccionario para buscar rápido los puntos de playoff de cada participante
+                const playoffMap = {};
+                playoffsData.forEach(p => {
+                    playoffMap[p.name] = p.playoffPoints || 0;
+                });
+                
+                // Lógica real: Puntos de Grupos = Puntos Totales - Puntos de Playoffs
+                participants.forEach(p => {
+                    const puntosPlayoff = playoffMap[p.name] || 0;
+                    p.grupoPoints = (p.totalPoints || 0) - puntosPlayoff;
+                });
+                
+                // Ordenamos por los puntos de grupos (de mayor a menor)
+                participants.sort((a, b) => b.grupoPoints - a.grupoPoints);
 
-                data.forEach((p, index) => {
+                participants.forEach((p, index) => {
                     const tr = document.createElement('tr');
                     
                     let lugarHTML = index + 1;
