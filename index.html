@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiniela Mundial - Posiciones</title>
+    <title>Quiniela Mundial - Posiciones Grupos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -14,14 +14,27 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="menuNavegacion">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link active" href="index.html">Posiciones</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            Posiciones
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item fw-bold text-primary" href="index.html">Tabla General 📊</a></li>
+                            <li><a class="dropdown-item" href="posiciones-playoffs.html">Tabla Playoffs 🏆</a></li>
+                            <li><a class="dropdown-item" href="posiciones-acumuladas.html">Tabla Acumulada 📈</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="grupos.html">📊 Grupos</a></li>
                     <li class="nav-item"><a class="nav-link" href="playoffs.html">🏆 Playoffs</a></li>
                     <li class="nav-item"><a class="nav-link" href="resultados.html">Resultados</a></li>
                     <li class="nav-item"><a class="nav-link" href="predicciones.html">Predicciones</a></li>
-                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar</a></li>
+                    
+                    <li class="nav-item admin-only d-none"><a class="nav-link text-warning fw-bold" href="admin-resultados.html">⚙️ Editar Partidos</a></li>
+                    <li class="nav-item admin-only d-none"><a class="btn btn-success ms-3 btn-sm" href="editar-participante.html">✏️ Editar Participante</a></li>
+                    
                     <li class="nav-item"><button class="btn btn-outline-light ms-3 btn-sm" id="btn-auth" onclick="toggleAuth()">Iniciar Sesión</button></li>
                 </ul>
             </div>
@@ -29,24 +42,38 @@
     </nav>
 
     <div class="container mt-4 mb-5" style="max-width: 800px;">
-        <h2 class="text-center mb-3">Tabla de Posiciones: Fase Grupos</h2>
+        <h2 class="text-center mb-2">📊 Tabla de Posiciones: General</h2>
+        <p class="text-center text-muted mb-3">Puntajes correspondientes únicamente a la Fase de Grupos terminada.</p>
         
         <div class="d-flex justify-content-center mb-4">
             <div class="btn-group shadow-sm" role="group">
-                <a href="index.html" class="btn btn-primary fw-bold pe-none">📊 General</a>
-                <a href="posiciones-playoffs.html" class="btn btn-outline-primary">🏆 Playoffs</a>
-                <a href="posiciones-acumuladas.html" class="btn btn-outline-primary">📈 Acumulada</a>
+                <a href="index.html" class="btn btn-primary pe-none">General</a>
+                <a href="posiciones-playoffs.html" class="btn btn-outline-primary">Playoffs</a>
+                <a href="posiciones-acumuladas.html" class="btn btn-outline-primary">Acumulada</a>
             </div>
         </div>
-        
-        <div class="card shadow-sm border-0 bg-white">
+
+        <div class="card shadow-sm border-primary bg-white border-top border-4">
             <div class="card-body p-0">
-                <table class="table table-striped table-hover align-middle m-0">
-                    <thead class="table-dark">
-                        <tr><th class="text-center">#</th><th>Participante</th><th class="text-center">Pts Grupos</th></tr>
-                    </thead>
-                    <tbody id="tabla-participantes"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle m-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 70px;" class="text-center">#</th>
+                                <th>Participante</th>
+                                <th style="width: 120px;" class="text-center">Pts Grupos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-participantes">
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Calculando puntajes en tiempo real...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -57,7 +84,9 @@
 
         function verificarAdmin() {
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('d-none', !isAdmin));
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('d-none', !isAdmin);
+            });
             const btnAuth = document.getElementById('btn-auth');
             if(btnAuth) {
                 btnAuth.innerText = isAdmin ? 'Cerrar Sesión' : 'Iniciar Sesión';
@@ -71,13 +100,18 @@
                 alert('Sesión cerrada');
                 window.location.reload();
             } else {
-                const pass = prompt('Introduce la contraseña:');
+                const pass = prompt('Introduce la contraseña de administrador:');
                 if (pass === ADMIN_PASSWORD) {
                     localStorage.setItem('isAdmin', 'true');
+                    alert('¡Sesión iniciada como administrador!');
                     verificarAdmin();
-                } else if (pass !== null) alert('Contraseña incorrecta');
+                } else if (pass !== null) {
+                    alert('Contraseña incorrecta');
+                }
             }
         }
+
+        verificarAdmin();
 
         async function cargarParticipantes() {
             try {
@@ -85,18 +119,43 @@
                 const data = await res.json();
                 const tbody = document.getElementById('tabla-participantes');
                 
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                
                 // Lógica: Grupos = Total - Playoffs
                 data.forEach(p => p.grupoPoints = (p.totalPoints || 0) - (p.playoffPoints || 0));
                 data.sort((a, b) => b.grupoPoints - a.grupoPoints);
 
-                data.forEach((p, i) => {
-                    let icon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
-                    tbody.innerHTML += `<tr><td class="text-center fw-bold">${icon}</td><td>${p.name}</td><td class="text-center"><span class="badge bg-primary">${p.grupoPoints}</span></td></tr>`;
+                data.forEach((p, index) => {
+                    const tr = document.createElement('tr');
+                    
+                    let lugarHTML = index + 1;
+                    if (index === 0) lugarHTML = '🥇';
+                    else if (index === 1) lugarHTML = '🥈';
+                    else if (index === 2) lugarHTML = '🥉';
+
+                    const filaClase = index < 3 ? 'table-warning fw-semibold' : '';
+                    if(filaClase) tr.className = filaClase;
+
+                    tr.innerHTML = `
+                        <td class="text-center fw-bold fs-5">${lugarHTML}</td>
+                        <td class="fs-6 text-capitalize">${p.name}</td>
+                        <td class="text-center"><span class="badge bg-primary fs-5 px-3 py-1 shadow-sm w-100" style="max-width: 80px;">${p.grupoPoints}</span></td>
+                    `;
+                    tbody.appendChild(tr);
                 });
-            } catch (e) { console.error(e); }
+            } catch (error) {
+                console.error("Error cargando tabla general:", error);
+                document.getElementById('tabla-participantes').innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-danger py-4">
+                            ❌ Error al conectar con el servidor. No se pudieron cargar las posiciones.
+                        </td>
+                    </tr>
+                `;
+            }
         }
 
-        verificarAdmin();
         cargarParticipantes();
     </script>
 </body>
