@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiniela Mundial - Tabla Acumulada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">⚽ Quiniela Mundial</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        <h2 class="text-center">📈 Tabla Acumulada</h2>
+        <p class="text-center text-muted mb-4">Suma total de puntos (Grupos + Playoffs)</p>
+        
+        <div class="d-flex justify-content-center mb-4">
+            <div class="btn-group shadow-sm" role="group">
+                <a href="index.html" class="btn btn-outline-primary">General</a>
+                <a href="posiciones-playoffs.html" class="btn btn-outline-primary">Playoffs</a>
+                <a href="posiciones-acumuladas.html" class="btn btn-primary pe-none">Acumulada</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-striped m-0">
+                    <thead class="table-dark">
+                        <tr><th>Participante</th><th class="text-center">Total Pts</th></tr>
+                    </thead>
+                    <tbody id="tabla-acumulada"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://quinielamundial-e3zh.onrender.com/api';
+        async function cargarAcumulada() {
+            try {
+                // Obtenemos todos los participantes
+                const res = await fetch(`${API_URL}/participants`);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-acumulada');
+                
+                // Sumamos y ordenamos
+                data.forEach(p => p.finalScore = (p.totalPoints || 0) + (p.playoffPoints || 0));
+                data.sort((a, b) => b.finalScore - a.finalScore);
+
+                data.forEach(p => {
+                    tbody.innerHTML += `<tr><td>${p.name}</td><td class="text-center fw-bold">${p.finalScore}</td></tr>`;
+                });
+            } catch (e) { console.error(e); }
+        }
+        cargarAcumulada();
+    </script>
+</body>
+</html>
