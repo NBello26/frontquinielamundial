@@ -407,15 +407,15 @@
                 const jugado = match.realGoalsA !== null && match.realGoalsB !== null;
                 const grupoStr = match.group || "";
 
-                // Header Elegante del Partido
+                // Header Elegante del Partido (Ajustado para no cortar nombres)
                 cabecera.innerHTML = `
                     <div class="card bg-dark text-white shadow rounded-4 border-0 mb-3">
-                        <div class="card-body text-center py-4">
+                        <div class="card-body text-center py-3 px-2">
                             <div class="small text-warning text-uppercase fw-bold mb-2 fs-6">${grupoStr.length <= 1 ? 'Fase de Grupos - Grupo ' + grupoStr : 'Fase Final - ' + grupoStr}</div>
-                            <div class="d-flex align-items-center justify-content-center">
-                                <h2 class="mb-0 fw-bold px-3 text-truncate" style="max-width:40%;">${match.teamA}</h2>
-                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} fs-2 mx-3 px-4 shadow rounded-pill">${jugado ? match.realGoalsA + ' - ' + match.realGoalsB : 'VS'}</span>
-                                <h2 class="mb-0 fw-bold px-3 text-truncate" style="max-width:40%;">${match.teamB}</h2>
+                            <div class="d-flex align-items-center justify-content-center w-100">
+                                <div class="fw-bold text-end text-wrap lh-sm" style="flex: 1; font-size: clamp(0.9rem, 4vw, 1.5rem);">${match.teamA}</div>
+                                <span class="badge ${jugado ? 'bg-success' : 'bg-secondary'} mx-2 px-3 shadow rounded-pill" style="font-size: clamp(1.2rem, 5vw, 2rem);">${jugado ? match.realGoalsA + ' - ' + match.realGoalsB : 'VS'}</span>
+                                <div class="fw-bold text-start text-wrap lh-sm" style="flex: 1; font-size: clamp(0.9rem, 4vw, 1.5rem);">${match.teamB}</div>
                             </div>
                         </div>
                     </div>
@@ -447,35 +447,36 @@
                             else { ptsBadge = "0 pts"; ptsClass = "bg-danger"; }
                         }
 
+                        // Tarjetas de apuestas adaptables (no cortan texto)
                         return `
-                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-white rounded mb-2 shadow-sm">
-                            <span class="text-capitalize fs-6 fw-bold text-secondary text-truncate me-2 flex-grow-1">${p.participant.name}</span>
-                            
-                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                <span class="badge bg-dark fs-6 px-2 py-1 shadow-sm">${p.goalsA} - ${p.goalsB}</span>
-                                ${jugado ? `<span class="badge ${ptsClass} shadow-sm" style="width: 55px;">${ptsBadge}</span>` : ''}
+                        <div class="p-1 p-md-2 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-center bg-white rounded mb-2 shadow-sm">
+                            <span class="text-capitalize fw-bold text-secondary text-wrap text-center text-md-start lh-sm mb-1 mb-md-0 flex-grow-1" style="font-size: 0.85rem; word-break: break-word;">${p.participant.name}</span>
+                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                <span class="badge bg-dark px-2 py-1 shadow-sm" style="font-size: 0.85rem;">${p.goalsA} - ${p.goalsB}</span>
+                                ${jugado ? `<span class="badge ${ptsClass} shadow-sm px-1 py-1" style="font-size: 0.75rem;">${ptsBadge}</span>` : ''}
                             </div>
                         </div>
                         `
                     }).join('');
                 }
 
+                // Las 3 columnas siempre presentes incluso en celular
                 lista.innerHTML = `
-                    <div class="col-md-4">
-                        <div class="bg-light rounded-4 shadow-sm p-3 h-100 border-top border-4 border-success">
-                            <h5 class="text-center fw-bold mb-3 text-success text-truncate" title="Gana ${match.teamA}">Gana ${match.teamA} <br><small class="text-muted fw-normal fs-6">(${apuestasGanaA.length} apuestas)</small></h5>
+                    <div class="col-4 px-1">
+                        <div class="bg-light rounded-4 shadow-sm p-2 h-100 border-top border-4 border-success">
+                            <h6 class="text-center fw-bold mb-3 text-success lh-sm" style="font-size: 0.85rem;">Gana ${match.teamA} <br><small class="text-muted fw-normal">(${apuestasGanaA.length})</small></h6>
                             ${renderColumna(apuestasGanaA)}
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="bg-light rounded-4 shadow-sm p-3 h-100 border-top border-4 border-secondary">
-                            <h5 class="text-center fw-bold mb-3 text-secondary">Empate <br><small class="text-muted fw-normal fs-6">(${apuestasEmpate.length} apuestas)</small></h5>
+                    <div class="col-4 px-1">
+                        <div class="bg-light rounded-4 shadow-sm p-2 h-100 border-top border-4 border-secondary">
+                            <h6 class="text-center fw-bold mb-3 text-secondary lh-sm" style="font-size: 0.85rem;">Empate <br><small class="text-muted fw-normal">(${apuestasEmpate.length})</small></h6>
                             ${renderColumna(apuestasEmpate)}
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="bg-light rounded-4 shadow-sm p-3 h-100 border-top border-4 border-primary">
-                            <h5 class="text-center fw-bold mb-3 text-primary text-truncate" title="Gana ${match.teamB}">Gana ${match.teamB} <br><small class="text-muted fw-normal fs-6">(${apuestasGanaB.length} apuestas)</small></h5>
+                    <div class="col-4 px-1">
+                        <div class="bg-light rounded-4 shadow-sm p-2 h-100 border-top border-4 border-primary">
+                            <h6 class="text-center fw-bold mb-3 text-primary lh-sm" style="font-size: 0.85rem;">Gana ${match.teamB} <br><small class="text-muted fw-normal">(${apuestasGanaB.length})</small></h6>
                             ${renderColumna(apuestasGanaB)}
                         </div>
                     </div>
